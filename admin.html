@@ -6,12 +6,98 @@
     <title>Admin - 3DParts</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .box { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input, button { padding: 10px; margin: 5px 0; font-size: 16px; width: 100%; box-sizing: border-box; }
+        .box { max-width: 1000px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select, button { padding: 10px; margin: 5px 0; font-size: 16px; box-sizing: border-box; }
+        input, select { width: 100%; border: 1px solid #ccc; border-radius: 4px; }
         button { background: #24292e; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0366d6; }
-        .richiesta-card { background: #fff; border-left: 4px solid #0366d6; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-radius: 4px; }
+        
         .nascondi { display: none; }
+        
+        /* Layout Pannello Admin con Dettaglio laterale */
+        .admin-layout { display: flex; gap: 20px; margin-top: 20px; position: relative; }
+        .lista-container { flex: 1; transition: all 0.3s; }
+        
+        /* Card della richiesta */
+        .richiesta-card { 
+            background: #fff; 
+            border-left: 4px solid #0366d6; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1); 
+            border-radius: 4px; 
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .richiesta-card:hover { background: #f8f9fa; transform: translateY(-2px); }
+        
+        /* Testo tagliato a 2 righe */
+        .testo-anteprima {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #555;
+            margin: 8px 0;
+        }
+
+        /* Pulsante elimina */
+        .btn-elimina {
+            background: #d73a49;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .btn-elimina:hover { background: #cb2431; }
+
+        /* Box Laterale (Drawer) Dettaglio */
+        .dettaglio-lato {
+            width: 0;
+            overflow: hidden;
+            background: #fff;
+            border-left: 1px solid #ddd;
+            padding: 0;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            max-height: 80vh;
+        }
+        .dettaglio-lato.attivo {
+            width: 400px;
+            padding: 20px;
+        }
+        .chiudi-dettaglio {
+            background: #e1e4e8;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+            font-weight: bold;
+        }
+        .chiudi-dettaglio:hover { background: #d1d5da; }
+
+        .filtri-box {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #f1f8ff;
+            padding: 15px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -24,17 +110,50 @@
             <p>Accedi per visualizzare le richieste dei clienti.</p>
             <input type="email" id="emailAdmin" placeholder="Email Admin">
             <input type="password" id="passwordAdmin" placeholder="Password">
-            <button id="loginBtn">Accedi</button>
+            <button id="loginBtn" style="width:100%;">Accedi</button>
             <p id="erroreLogin" style="color: red;"></p>
         </div>
 
-        <!-- SEZIONE RISERVATA (Nascosta finché non fai il login) -->
+        <!-- SEZIONE RISERVATA -->
         <div id="sezione-admin" class="nascondi">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Richieste di Contatto Ricevute</h3>
-                <button id="logoutBtn" style="width: auto; padding: 5px 15px; background: #d73a49;">Esci</button>
+                <button id="logoutBtn" style="width: auto; padding: 8px 15px; background: #d73a49;">Esci</button>
             </div>
-            <div id="lista-richieste">Caricamento richieste...</div>
+
+            <!-- FILTRI E RICERCA -->
+            <div class="filtri-box">
+                <div>
+                    <label style="font-size:14px; font-weight:bold;">Cerca per nome o azienda:</label>
+                    <input type="text" id="inputRicerca" placeholder="Es. Mario o Nome Azienda...">
+                </div>
+                <div>
+                    <label style="font-size:14px; font-weight:bold;">Ordina per:</label>
+                    <select id="selectOrdine">
+                        <option value="desc">Dal più recente</option>
+                        <option value="asc">Dal meno recente</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-layout">
+                <!-- LISTA PRINCIPALE -->
+                <div class="lista-container" id="lista-richieste">
+                    <p>Caricamento richieste...</p>
+                </div>
+
+                <!-- BOX LATERALE DETTAGLIO -->
+                <div class="dettaglio-lato" id="boxDettaglio">
+                    <button class="chiudi-dettaglio" id="btnChiudiDettaglio">×</button>
+                    <h3>Dettaglio Richiesta</h3>
+                    <p><strong>Nome/Azienda:</strong> <span id="detNome"></span></p>
+                    <p><strong>Email:</strong> <a id="detEmailLink" href=""><span id="detEmail"></span></a></p>
+                    <p><strong>Data:</strong> <span id="detData"></span></p>
+                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                    <p><strong>Messaggio completo:</strong></p>
+                    <p id="detMessaggio" style="white-space: pre-wrap; line-height: 1.6; color: #333; background: #f9f9f9; padding: 12px; border-radius: 4px;"></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -42,28 +161,32 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-            // Inserisci la tua configurazione Firebase
-     const firebaseConfig = {
-        apiKey: "AIzaSyChYUaNJ02DAZZd3FOIu0fBuv8KeooVW98",
-        authDomain: "laosbackend.firebaseapp.com",
-        projectId: "laosbackend",
-        storageBucket: "laosbackend.firebasestorage.app",
-        messagingSenderId: "971024190529",
-        appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        let tutteLeRichieste = []; // Salviamo i dati localmente per filtrare senza ricaricare sempre
+
         const sezioneLogin = document.getElementById("sezione-login");
         const sezioneAdmin = document.getElementById("sezione-admin");
         const listaRichieste = document.getElementById("lista-richieste");
         const erroreLogin = document.getElementById("erroreLogin");
+        const boxDettaglio = document.getElementById("boxDettaglio");
+        const inputRicerca = document.getElementById("inputRicerca");
+        const selectOrdine = document.getElementById("selectOrdine");
 
-        // Gestione Login
+        // Login
         document.getElementById("loginBtn").addEventListener("click", async () => {
             const email = document.getElementById("emailAdmin").value;
             const password = document.getElementById("passwordAdmin").value;
@@ -72,60 +195,111 @@
                 erroreLogin.textContent = "";
             } catch (error) {
                 erroreLogin.textContent = "Credenziali non valide o errore di accesso.";
-                console.error(error);
             }
         });
 
-        // Gestione Logout
+        // Logout
         document.getElementById("logoutBtn").addEventListener("click", async () => {
             await signOut(auth);
+            boxDettaglio.classList.remove("attivo");
         });
 
-        // Ascolta lo stato dell'utente (Loggato / Non loggato)
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Utente loggato: mostra il pannello e carica i dati
                 sezioneLogin.classList.add("nascondi");
                 sezioneAdmin.classList.remove("nascondi");
                 caricaRichieste();
             } else {
-                // Utente disconnesso: mostra il form di login
                 sezioneLogin.classList.remove("nascondi");
                 sezioneAdmin.classList.add("nascondi");
             }
         });
 
-        // Funzione per scaricare le richieste dal DB
+        // Scarica richieste da Firestore
         async function caricaRichieste() {
             listaRichieste.innerHTML = "Caricamento...";
             try {
-                // Ordina le richieste dalla più recente alla meno recente
-                const q = query(collection(db, "richieste_contatto"), orderBy("dataInvio", "desc"));
+                const ordine = selectOrdine.value;
+                const q = query(collection(db, "richieste_contatto"), orderBy("dataInvio", ordine));
                 const querySnapshot = await getDocs(q);
 
-                if (querySnapshot.empty) {
-                    listaRichieste.innerHTML = "<p>Nessuna richiesta ricevuta.</p>";
-                    return;
-                }
-
-                listaRichieste.innerHTML = "";
-                querySnapshot.forEach((doc) => {
-                    const r = doc.data();
-                    const dataFormattata = r.dataInvio ? r.dataInvio.toDate().toLocaleString() : "Data non disponibile";
-                    listaRichieste.innerHTML += `
-                        <div class="richiesta-card">
-                            <p><strong>Nome/Azienda:</strong> ${r.nome}</p>
-                            <p><strong>Email:</strong> <a href="mailto:${r.email}">${r.email}</a></p>
-                            <p><strong>Messaggio:</strong> ${r.messaggio}</p>
-                            <p style="font-size: 12px; color: #666;">Ricevuto il: ${dataFormattata}</p>
-                        </div>
-                    `;
+                tutteLeRichieste = [];
+                querySnapshot.forEach((docSnap) => {
+                    tutteLeRichieste.push({ id: docSnap.id, ...docSnap.data() });
                 });
+
+                mostraRichieste(tutteLeRichieste);
             } catch (error) {
-                console.error("Errore nel caricamento delle richieste:", error);
+                console.error(error);
                 listaRichieste.innerHTML = "<p>Errore di caricamento o permessi negati.</p>";
             }
         }
+
+        // Mostra le richieste a schermo filtrate
+        function mostraRichieste(arrayRichieste) {
+            const testoFiltro = inputRicerca.value.toLowerCase();
+            const filtrate = arrayRichieste.filter(r => r.nome.toLowerCase().includes(testoFiltro));
+
+            if (filtrate.length === 0) {
+                listaRichieste.innerHTML = "<p>Nessuna richiesta trovata.</p>";
+                return;
+            }
+
+            listaRichieste.innerHTML = "";
+            filtrate.forEach((r) => {
+                const dataFormattata = r.dataInvio ? r.dataInvio.toDate().toLocaleString() : "Data non disponibile";
+                
+                const card = document.createElement("div");
+                card.className = "richiesta-card";
+                card.innerHTML = `
+                    <button class="btn-elimina" data-id="${r.id}">Elimina</button>
+                    <h4 style="margin:0 0 5px 0; color:#24292e;">${r.nome}</h4>
+                    <p style="margin:0; font-size:14px; color:#0366d6;">${r.email}</p>
+                    <p class="testo-anteprima"><strong>Messaggio:</strong> ${r.messaggio}</p>
+                    <p style="font-size: 11px; color: #888; margin:5px 0 0 0;">${dataFormattata}</p>
+                `;
+
+                // Click sulla card per aprire il dettaglio a destra (escludendo il bottone elimina)
+                card.addEventListener("click", (e) => {
+                    if (e.target.tagName === "BUTTON") return; // Evita di aprire se clicchi elimina
+                    apriDettaglio(r, dataFormattata);
+                });
+
+                // Gestione bottone Elimina
+                card.querySelector(".btn-elimina").addEventListener("click", async () => {
+                    if (confirm(`Vuoi davvero eliminare la richiesta di ${r.nome}?`)) {
+                        try {
+                            await deleteDoc(doc(db, "richieste_contatto", r.id));
+                            boxDettaglio.classList.remove("attivo");
+                            caricaRichieste(); // Ricarica la lista
+                        } catch (err) {
+                            alert("Errore durante l'eliminazione.");
+                        }
+                    }
+                });
+
+                listaRichieste.appendChild(card);
+            });
+        }
+
+        // Apri il box laterale
+        function apriDettaglio(r, dataFormattata) {
+            document.getElementById("detNome").textContent = r.nome;
+            document.getElementById("detEmail").textContent = r.email;
+            document.getElementById("detEmailLink").href = `mailto:${r.email}`;
+            document.getElementById("detData").textContent = dataFormattata;
+            document.getElementById("detMessaggio").textContent = r.messaggio;
+            boxDettaglio.classList.add("attivo");
+        }
+
+        // Chiudi box laterale
+        document.getElementById("btnChiudiDettaglio").addEventListener("click", () => {
+            boxDettaglio.classList.remove("attivo");
+        });
+
+        // Eventi per filtri e ricerca in tempo reale
+        inputRicerca.addEventListener("input", () => mostraRichieste(tutteLeRichieste));
+        selectOrdine.addEventListener("change", () => caricaRichieste());
     </script>
 </body>
 </html>
