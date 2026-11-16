@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laos Engineering / 3D Parts</title>
+    <title>3DParts - Soluzioni e Servizi</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,8 +15,27 @@
         header {
             background-color: #24292e;
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 20px 0;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .admin-btn {
+            color: white;
+            text-decoration: none;
+            background: #0366d6;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .admin-btn:hover {
+            background: #0056b3;
         }
         main {
             max-width: 1000px;
@@ -79,7 +98,7 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        button {
+        button[type="submit"] {
             background-color: #24292e;
             color: white;
             border: none;
@@ -89,7 +108,7 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        button:hover {
+        button[type="submit"]:hover {
             background-color: #0366d6;
         }
         #statoInvio {
@@ -102,8 +121,15 @@
 <body>
 
     <header>
-        <h1>Laos Engineering / 3D Parts</h1>
-        <p>Servizio di Stampa 3D personalizzato</p>
+        <div class="header-content">
+            <div>
+                <h1 style="margin: 0; font-size: 24px;">3DParts</h1>
+                <p style="margin: 5px 0 0 0; color: #aaa; font-size: 14px;">Soluzioni e Servizi di Stampa 3D</p>
+            </div>
+            <div>
+                <a href="admin.html" class="admin-btn">Area Admin</a>
+            </div>
+        </div>
     </header>
 
     <main>
@@ -119,7 +145,7 @@
         <section>
             <h2>Richiedi Informazioni</h2>
             <form id="formContatto">
-                <input type="text" id="nome" placeholder="Nome e Cognome" required>
+                <input type="text" id="nome" placeholder="Il tuo Nome o Azienda" required>
                 <input type="email" id="email" placeholder="La tua Email" required>
                 <textarea id="messaggio" rows="4" placeholder="Descrivi il tuo progetto..." required></textarea>
                 <button type="submit">Invia Richiesta</button>
@@ -163,10 +189,10 @@
                     container.innerHTML += `
                         <article class="card">
                             <div>
-                                <img src="${item.immagineUrl || 'https://placehold.co/400x250'}" alt="${item.Titolo}">
+                                <img src="${item.immagineUrl || 'https://placehold.co/400x250'}" alt="${item.Titolo || 'Prodotto'}">
                                 <span class="badge">${item.Categoria || 'Generale'}</span>
-                                ` + `<h3>${item.Titolo}</h3>` + `
-                                <p>${item.Descrizione}</p>
+                                <h3>${item.Titolo || 'Senza titolo'}</h3>
+                                <p>${item.Descrizione || ''}</p>
                             </div>
                         </article>
                     `;
