@@ -3,14 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Il mio primo sito su GitHub</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Laos Engineering / 3D Parts</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #24292e;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        h2 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        /* Griglia Prodotti */
+        .griglia-prodotti {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .badge {
+            background-color: #0366d6;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+            margin-bottom: 10px;
+        }
+        /* Form Contatti */
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        input, textarea {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #24292e;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #0366d6;
+        }
+        #statoInvio {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <main class="container">
-        <h1>Benvenuto sul mio sito web!</h1>
-        <p>Questo sito è ospitato gratuitamente grazie a GitHub Pages.</p>
-        <a href="https://github.com" class="btn">scopri di più</a>
+
+    <header>
+        <h1>Laos Engineering / 3D Parts</h1>
+        <p>Servizio di Stampa 3D personalizzato</p>
+    </header>
+
+    <main>
+        <!-- Sezione Catalogo dinamico da Firebase -->
+        <section>
+            <h2>I nostri Prodotti e Servizi</h2>
+            <div id="catalogo-container" class="griglia-prodotti">
+                <p>Caricamento catalogo in corso...</p>
+            </div>
+        </section>
+
+        <!-- Sezione Form Contatti collegata a Firebase -->
+        <section>
+            <h2>Richiedi Informazioni</h2>
+            <form id="formContatto">
+                <input type="text" id="nome" placeholder="Nome e Cognome" required>
+                <input type="email" id="email" placeholder="La tua Email" required>
+                <textarea id="messaggio" rows="4" placeholder="Descrivi il tuo progetto..." required></textarea>
+                <button type="submit">Invia Richiesta</button>
+                <p id="statoInvio"></p>
+            </form>
+        </section>
     </main>
+
+    <!-- Script JavaScript per connettersi a Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configurazione Firebase presa dal tuo pannello
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
+
+        // Inizializzazione
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. CARICAMENTO CATALOGO DA FIRESTORE
+        async function caricaCatalogo() {
+            const container = document.getElementById("catalogo-container");
+            try {
+                const querySnapshot = await getDocs(collection(db, "catalogo"));
+                if (querySnapshot.empty) {
+                    container.innerHTML = "<p>Nessun prodotto disponibile al momento.</p>";
+                    return;
+                }
+                
+                container.innerHTML = ""; // Pulisce il testo di caricamento
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    container.innerHTML += `
+                        <article class="card">
+                            <div>
+                                <img src="${item.immagineUrl || 'https://placehold.co/400x250'}" alt="${item.Titolo}">
+                                <span class="badge">${item.Categoria || 'Generale'}</span>
+                                ` + `<h3>${item.Titolo}</h3>` + `
+                                <p>${item.Descrizione}</p>
+                            </div>
+                        </article>
+                    `;
+                });
+            } catch (errore) {
+                console.error("Errore nel caricamento:", errore);
+                container.innerHTML = "<p>Errore nel caricamento del catalogo.</p>";
+            }
+        }
+
+        // 2. GESTIONE INVIO FORM CONTATTI
+        document.getElementById("formContatto").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const stato = document.getElementById("statoInvio");
+            stato.textContent = "Invio in corso...";
+            stato.style.color = "#333";
+
+            try {
+                await addDoc(collection(db, "richieste_contatto"), {
+                    nome: document.getElementById("nome").value,
+                    email: document.getElementById("email").value,
+                    messaggio: document.getElementById("messaggio").value,
+                    dataInvio: serverTimestamp()
+                });
+                stato.textContent = "Richiesta inviata con successo! Ti ricontatteremo presto.";
+                stato.style.color = "green";
+                e.target.reset();
+            } catch (errore) {
+                console.error("Errore nell'invio:", errore);
+                stato.textContent = "Errore durante l'invio. Riprova più tardi.";
+                stato.style.color = "red";
+            }
+        });
+
+        // Avvia la lettura del database all'apertura della pagina
+        caricaCatalogo();
+    </script>
 </body>
 </html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - 3DParts</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .box { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, button { padding: 10px; margin: 5px 0; font-size: 16px; width: 100%; box-sizing: border-box; }
+        button { background: #24292e; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0366d6; }
+        .richiesta-card { background: #fff; border-left: 4px solid #0366d6; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-radius: 4px; }
+        .nascondi { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>Pannello di Amministrazione</h2>
+
+        <!-- SEZIONE LOGIN -->
+        <div id="sezione-login">
+            <p>Accedi per visualizzare le richieste dei clienti.</p>
+            <input type="email" id="emailAdmin" placeholder="Email Admin">
+            <input type="password" id="passwordAdmin" placeholder="Password">
+            <button id="loginBtn">Accedi</button>
+            <p id="erroreLogin" style="color: red;"></p>
+        </div>
+
+        <!-- SEZIONE RISERVATA (Nascosta finché non fai il login) -->
+        <div id="sezione-admin" class="nascondi">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Richieste di Contatto Ricevute</h3>
+                <button id="logoutBtn" style="width: auto; padding: 5px 15px; background: #d73a49;">Esci</button>
+            </div>
+            <div id="lista-richieste">Caricamento richieste...</div>
+        </div>
+    </div>
+
+    <!-- Script Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Inserisci la tua configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const sezioneLogin = document.getElementById("sezione-login");
+        const sezioneAdmin = document.getElementById("sezione-admin");
+        const listaRichieste = document.getElementById("lista-richieste");
+        const erroreLogin = document.getElementById("erroreLogin");
+
+        // Gestione Login
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const email = document.getElementById("emailAdmin").value;
+            const password = document.getElementById("passwordAdmin").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                erroreLogin.textContent = "";
+            } catch (error) {
+                erroreLogin.textContent = "Credenziali non valide o errore di accesso.";
+                console.error(error);
+            }
+        });
+
+        // Gestione Logout
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await signOut(auth);
+        });
+
+        // Ascolta lo stato dell'utente (Loggato / Non loggato)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Utente loggato: mostra il pannello e carica i dati
+                sezioneLogin.classList.add("nascondi");
+                sezioneAdmin.classList.remove("nascondi");
+                caricaRichieste();
+            } else {
+                // Utente disconnesso: mostra il form di login
+                sezioneLogin.classList.remove("nascondi");
+                sezioneAdmin.classList.add("nascondi");
+            }
+        });
+
+        // Funzione per scaricare le richieste dal DB
+        async function caricaRichieste() {
+            listaRichieste.innerHTML = "Caricamento...";
+            try {
+                // Ordina le richieste dalla più recente alla meno recente
+                const q = query(collection(db, "richieste_contatto"), orderBy("dataInvio", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    listaRichieste.innerHTML = "<p>Nessuna richiesta ricevuta.</p>";
+                    return;
+                }
+
+                listaRichieste.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    const r = doc.data();
+                    const dataFormattata = r.dataInvio ? r.dataInvio.toDate().toLocaleString() : "Data non disponibile";
+                    listaRichieste.innerHTML += `
+                        <div class="richiesta-card">
+                            <p><strong>Nome/Azienda:</strong> ${r.nome}</p>
+                            <p><strong>Email:</strong> <a href="mailto:${r.email}">${r.email}</a></p>
+                            <p><strong>Messaggio:</strong> ${r.messaggio}</p>
+                            <p style="font-size: 12px; color: #666;">Ricevuto il: ${dataFormattata}</p>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Errore nel caricamento delle richieste:", error);
+                listaRichieste.innerHTML = "<p>Errore di caricamento o permessi negati.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
