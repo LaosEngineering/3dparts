@@ -91,12 +91,13 @@
 
         .filtri-box {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 15px;
             margin-bottom: 20px;
             background: #f1f8ff;
             padding: 15px;
             border-radius: 6px;
+            align-items: end;
         }
     </style>
 </head>
@@ -121,18 +122,19 @@
                 <button id="logoutBtn" style="width: auto; padding: 8px 15px; background: #d73a49;">Esci</button>
             </div>
 
-            <!-- FILTRI E RICERCA -->
+            <!-- FILTRI E RICERCA CON DATE -->
             <div class="filtri-box">
                 <div>
-                    <label style="font-size:14px; font-weight:bold;">Cerca per nome o azienda:</label>
-                    <input type="text" id="inputRicerca" placeholder="Es. Mario o Nome Azienda...">
+                    <label style="font-size:13px; font-weight:bold;">Cerca per nome o azienda:</label>
+                    <input type="text" id="inputRicerca" placeholder="Es. Mario...">
                 </div>
                 <div>
-                    <label style="font-size:14px; font-weight:bold;">Ordina per:</label>
-                    <select id="selectOrdine">
-                        <option value="desc">Dal più recente</option>
-                        <option value="asc">Dal meno recente</option>
-                    </select>
+                    <label style="font-size:13px; font-weight:bold;">Data Inizio:</label>
+                    <input type="date" id="dataDal">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Data Fine:</label>
+                    <input type="date" id="dataAl">
                 </div>
             </div>
 
@@ -170,13 +172,14 @@
             storageBucket: "laosbackend.firebasestorage.app",
             messagingSenderId: "971024190529",
             appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
-          };
-        
+        };
+
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let tutteLeRichieste = []; // Salviamo i dati localmente per filtrare senza ricaricare sempre
+        let tutteLeRichieste = [];
 
         const sezioneLogin = document.getElementById("sezione-login");
         const sezioneAdmin = document.getElementById("sezione-admin");
@@ -184,7 +187,8 @@
         const erroreLogin = document.getElementById("erroreLogin");
         const boxDettaglio = document.getElementById("boxDettaglio");
         const inputRicerca = document.getElementById("inputRicerca");
-        const selectOrdine = document.getElementById("selectOrdine");
+        const dataDal = document.getElementById("dataDal");
+        const dataAl = document.getElementById("dataAl");
 
         // Login
         document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -215,12 +219,11 @@
             }
         });
 
-        // Scarica richieste da Firestore
+        // Scarica richieste da Firestore (ordinate di default dalla più recente)
         async function caricaRichieste() {
             listaRichieste.innerHTML = "Caricamento...";
             try {
-                const ordine = selectOrdine.value;
-                const q = query(collection(db, "richieste_contatto"), orderBy("dataInvio", ordine));
+                const q = query(collection(db, "richieste_contatto"), orderBy("dataInvio", "desc"));
                 const querySnapshot = await getDocs(q);
 
                 tutteLeRichieste = [];
@@ -228,20 +231,41 @@
                     tutteLeRichieste.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                mostraRichieste(tutteLeRichieste);
+                mostraRichieste();
             } catch (error) {
                 console.error(error);
                 listaRichieste.innerHTML = "<p>Errore di caricamento o permessi negati.</p>";
             }
         }
 
-        // Mostra le richieste a schermo filtrate
-        function mostraRichieste(arrayRichieste) {
+        // Filtra e mostra le richieste a schermo
+        function mostraRichieste() {
             const testoFiltro = inputRicerca.value.toLowerCase();
-            const filtrate = arrayRichieste.filter(r => r.nome.toLowerCase().includes(testoFiltro));
+            const valDal = dataDal.value ? new Date(dataDal.value) : null;
+            const valAl = dataAl.value ? new Date(dataAl.value) : null;
+            
+            // Imposta la fine della giornata per la data "Al" così include tutta la giornata selezionata
+            if (valAl) {
+                valAl.setHours(23, 59, 59, 999);
+            }
+
+            const filtrate = tutteLeRichieste.filter(r => {
+                // Filtro nome/azienda
+                const matchNome = r.nome.toLowerCase().includes(testoFiltro);
+                
+                // Filtro data
+                if (!r.dataInvio) return matchNome;
+                const dataRichiesta = r.dataInvio.toDate();
+
+                let matchData = true;
+                if (valDal && dataRichiesta < valDal) matchData = false;
+                if (valAl && dataRichiesta > valAl) matchData = false;
+
+                return matchNome && matchData;
+            });
 
             if (filtrate.length === 0) {
-                listaRichieste.innerHTML = "<p>Nessuna richiesta trovata.</p>";
+                listaRichieste.innerHTML = "<p>Nessuna richiesta trovata per i criteri selezionati.</p>";
                 return;
             }
 
@@ -259,9 +283,9 @@
                     <p style="font-size: 11px; color: #888; margin:5px 0 0 0;">${dataFormattata}</p>
                 `;
 
-                // Click sulla card per aprire il dettaglio a destra (escludendo il bottone elimina)
+                // Click sulla card per aprire il dettaglio a destra
                 card.addEventListener("click", (e) => {
-                    if (e.target.tagName === "BUTTON") return; // Evita di aprire se clicchi elimina
+                    if (e.target.tagName === "BUTTON") return;
                     apriDettaglio(r, dataFormattata);
                 });
 
@@ -271,7 +295,7 @@
                         try {
                             await deleteDoc(doc(db, "richieste_contatto", r.id));
                             boxDettaglio.classList.remove("attivo");
-                            caricaRichieste(); // Ricarica la lista
+                            caricaRichieste();
                         } catch (err) {
                             alert("Errore durante l'eliminazione.");
                         }
@@ -297,9 +321,10 @@
             boxDettaglio.classList.remove("attivo");
         });
 
-        // Eventi per filtri e ricerca in tempo reale
-        inputRicerca.addEventListener("input", () => mostraRichieste(tutteLeRichieste));
-        selectOrdine.addEventListener("change", () => caricaRichieste());
+        // Eventi per filtri in tempo reale
+        inputRicerca.addEventListener("input", mostraRichieste);
+        dataDal.addEventListener("change", mostraRichieste);
+        dataAl.addEventListener("change", mostraRichieste);
     </script>
 </body>
 </html>
