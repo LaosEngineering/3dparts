@@ -23,11 +23,15 @@
             background: var(--card-bg, #1e293b);
             color: var(--text-color, #f8fafc);
             border-radius: 10px;
-            max-width: 920px;
-            width: 100%;
+            width: 900px;
+            max-width: 95vw;
+            height: 760px;
             max-height: 92vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             padding: 20px;
+            box-sizing: border-box;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             position: relative;
         }
@@ -37,6 +41,7 @@
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 14px;
+            flex-shrink: 0;
         }
         .post-lightbox-close {
             background: #334155;
@@ -57,20 +62,22 @@
             position: relative;
             background: #0f172a;
             border-radius: 8px;
-            min-height: 320px;
-            max-height: 62vh;
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 360px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: auto;
             padding: 12px;
+            box-sizing: border-box;
         }
         .post-stage img {
-            max-width: 100%;
-            max-height: 58vh;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             border-radius: 6px;
-            transition: transform 0.2s ease, max-width 0.2s ease, max-height 0.2s ease;
+            transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
             cursor: zoom-in;
         }
         .post-stage img.zoomed {
@@ -145,6 +152,52 @@
         .bacheca-card-clickable {
             cursor: pointer;
         }
+        .bacheca-media-single {
+            width: 100%;
+            height: 210px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .bacheca-strip-wrapper {
+            width: 100%;
+            height: 210px;
+            overflow: hidden;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            position: relative;
+            background: rgba(15, 23, 42, 0.35);
+        }
+        .bacheca-strip-track {
+            display: flex;
+            gap: 8px;
+            height: 100%;
+            width: max-content;
+            will-change: transform;
+            animation: bachecaSlowScroll var(--scroll-duration, 18s) linear infinite;
+        }
+        .bacheca-card-clickable:hover .bacheca-strip-track {
+            animation-play-state: paused;
+        }
+        .bacheca-strip-track img {
+            height: 100%;
+            width: 240px;
+            min-width: 240px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        @keyframes bachecaSlowScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -392,9 +445,14 @@
                     if (materiale) tags.push(`<span class="meta-tag">Materiale: ${materiale}</span>`);
                     if (layer) tags.push(`<span class="meta-tag">${layer}</span>`);
 
+                    const durationSec = Math.max(14, valide.length * 7);
+                    const loopImgs = [...valide, ...valide].map((u, idx) => {
+                        const realIdx = idx % valide.length;
+                        return `<img src="${u}" alt="${titolo} ${realIdx + 1}" data-img-idx="${realIdx}" onerror="this.style.display='none'">`;
+                    }).join("");
                     const galleryHtml = valide.length > 1
-                        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;">${valide.map((u, idx) => `<img src="${u}" alt="${titolo}" data-img-idx="${idx}" style="height:110px;margin:0;" onerror="this.style.display='none'">`).join("")}</div>`
-                        : (valide.length === 1 ? `<img src="${valide[0]}" alt="${titolo}" data-img-idx="0" onerror="this.style.display='none'">` : "");
+                        ? `<div class="bacheca-strip-wrapper"><div class="bacheca-strip-track" style="--scroll-duration: ${durationSec}s;">${loopImgs}</div></div>`
+                        : (valide.length === 1 ? `<img src="${valide[0]}" alt="${titolo}" data-img-idx="0" class="bacheca-media-single" onerror="this.style.display='none'">` : "");
 
                     article.innerHTML = `
                         <div>
