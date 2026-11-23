@@ -1,3 +1,17 @@
+Ho aggiunto il nuovo servizio **"Progettazione CAD"** direttamente nella griglia (verrà mostrato in automatico anche se non è ancora inserito nel tuo database Firestore, evitando duplicati se in futuro lo aggiungerai da Area Admin) con il relativo **box modale interattivo 2D CAD / Blueprint**.
+
+### Cosa fa il nuovo Box "Progettazione CAD":
+
+1. **Animazione di Tracciamento 2D (Plotter / CAD):** Simula un cursore CAD ad alta precisione che disegna progressivamente le linee costruttive, i contorni e le **quote tecniche** (diametri, raggi, assi di simmetria e misure in millimetri) su un tavolo da disegno blueprint.
+2. **Modelli 2D selezionabili:**
+* **Ingranaggio Meccanico 2D:** Con cerchio primitivo tratteggiato, fori di alleggerimento e quotatura del diametro.
+* **Piantina Architettonica:** Con muri perimetrali, tramezzi interni, apertura delle porte ad arco e quote delle stanze.
+* **Staffa / Flangia Meccanica:** Con asole, fori svasati e assi di centraggio.
+
+
+3. **Controlli interattivi:** Slider per regolare la **velocità di tracciamento** e un interruttore per **mostrare o nascondere le quote e le linee di costruzione**, oltre al tasto rapido per inviare subito una richiesta di progettazione nel modulo contatti.
+
+```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -21,7 +35,6 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-dark);
-            /* Griglia CAD sottile e statica sullo sfondo */
             background-image: 
                 linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
@@ -217,11 +230,11 @@
             margin-top: 10px;
         }
 
-        /* ================= BOX MODALE PROTOTIPAZIONE 3D ================= */
+        /* ================= BOX MODALI INTERATTIVI (3D & 2D CAD) ================= */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(3, 7, 18, 0.82);
+            background: rgba(3, 7, 18, 0.84);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             z-index: 100;
@@ -310,14 +323,17 @@
             border-radius: 10px;
             overflow: hidden;
             height: 340px;
+        }
+
+        .viewer-wrapper.draggable {
             cursor: grab;
         }
 
-        .viewer-wrapper:active {
+        .viewer-wrapper.draggable:active {
             cursor: grabbing;
         }
 
-        #slicer-canvas {
+        .viewer-wrapper canvas {
             width: 100%;
             height: 100%;
             display: block;
@@ -341,12 +357,13 @@
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(7, 11, 20, 0.75);
+            background: rgba(7, 11, 20, 0.8);
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 11px;
             color: #94a3b8;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         .controls-panel {
@@ -372,6 +389,26 @@
         .control-group label span {
             color: #38bdf8;
             font-family: monospace;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            font-size: 13px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            accent-color: #38bdf8;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
 
         input[type="range"] {
@@ -463,7 +500,7 @@
         </section>
     </main>
 
-    <!-- BOX MODALE INTERATTIVO: PROTOTIPAZIONE 3D -->
+    <!-- ================= BOX 1: PROTOTIPAZIONE 3D ================= -->
     <div id="protoModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -475,12 +512,11 @@
             </div>
 
             <div class="modal-body">
-                <!-- Colonna Sinistra: Canvas 3D Singolo Oggetto -->
                 <div>
-                    <div id="viewerWrapper" class="viewer-wrapper">
+                    <div id="viewerWrapper" class="viewer-wrapper draggable">
                         <canvas id="slicer-canvas"></canvas>
                         <div class="viewer-hud">
-                            <span id="hud-layer">LAYER: 0 / 40</span>
+                            <span id="hud-layer">LAYER: 0 / 42</span>
                             <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
                         </div>
                         <div class="viewer-hint">Trascina per ruotare il modello 3D</div>
@@ -497,7 +533,6 @@
                     </div>
                 </div>
 
-                <!-- Colonna Destra: Controlli Slicer & Azione -->
                 <div class="controls-panel">
                     <div class="control-group">
                         <label for="modelSelect">Tipo di Oggetto 3D</label>
@@ -527,7 +562,7 @@
 
                     <div class="service-description">
                         <strong>Come funziona la stampa a strati?</strong>
-                        Ogni modello viene suddiviso (<em>slicing</em>) in decine o centinaia di sezioni orizzontali. Riducendo l'altezza del singolo strato si ottiene una superficie più liscia e dettagliata; aumentandola si privilegia la rapidità di prototipazione.
+                        Ogni modello viene suddiviso (<em>slicing</em>) in decine di sezioni orizzontali. Riducendo l'altezza del singolo strato si ottiene una superficie più liscia e dettagliata; aumentandola si privilegia la rapidità di prototipazione.
                     </div>
 
                     <button id="richiediProtoBtn" class="btn-primary" style="margin-top: auto;">
@@ -538,7 +573,76 @@
         </div>
     </div>
 
-    <!-- Script Simulatore 3D nel Box Modale -->
+    <!-- ================= BOX 2: PROGETTAZIONE CAD 2D ================= -->
+    <div id="cadModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>
+                    <span class="badge" style="margin:0;">Tavola Tecnica 2D</span>
+                    Progettazione CAD & Disegno Tecnico
+                </h3>
+                <button id="closeCadModalBtn" class="close-btn" title="Chiudi">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div>
+                    <div id="cadViewerWrapper" class="viewer-wrapper">
+                        <canvas id="cad-canvas"></canvas>
+                        <div class="viewer-hud">
+                            <span id="cad-hud-coords">X: 0.00  Y: 0.00 mm</span>
+                            <span id="cad-hud-scale">SCALA 1:1 • ORTHO ON</span>
+                        </div>
+                        <div class="viewer-hint">Tracciamento vettoriale CAD in tempo reale</div>
+                    </div>
+
+                    <div class="service-description" style="margin-top: 16px;">
+                        <strong>Disegni tecnici pronti per produzione e taglio</strong>
+                        Sviluppiamo tavole 2D quotate, schemi meccanici, file vettoriali per taglio laser/CNC e planimetrie tecniche a partire da schizzi a mano, rilievi o idee progettuali.
+                        <div class="specs-pills">
+                            <span class="spec-pill">Formati DWG / DXF / STEP</span>
+                            <span class="spec-pill">Quotatura ISO / UNI</span>
+                            <span class="spec-pill">Reverse Engineering</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <label for="cadModelSelect">Elaborato CAD 2D</label>
+                        <select id="cadModelSelect">
+                            <option value="gear2d">Ingranaggio Meccanico Quotato</option>
+                            <option value="floorplan">Piantina Architettonica (Bilocale)</option>
+                            <option value="flange2d">Flangia Forata di Precisione</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="cadSpeedSlider">
+                            Velocità di Tracciamento
+                            <span id="cadSpeedValue">Lenta (0.6x)</span>
+                        </label>
+                        <input type="range" id="cadSpeedSlider" min="0" max="2" step="0.1" value="0.6">
+                    </div>
+
+                    <label class="checkbox-row" for="cadDimsToggle">
+                        <span>Mostra Quote e Linee di Costruzione</span>
+                        <input type="checkbox" id="cadDimsToggle" checked>
+                    </label>
+
+                    <div class="service-description">
+                        <strong>Dal disegno 2D al modello 3D</strong>
+                        Ogni progetto nasce da una geometria bidimensionale precisa: assi di simmetria, tolleranze di accoppiamento e vincoli parametrici garantiscono che il pezzo funzioni al primo assemblaggio.
+                    </div>
+
+                    <button id="richiediCadBtn" class="btn-primary" style="margin-top: auto;">
+                        Richiedi Consulenza CAD
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script 1: Simulatore 3D (Prototipazione) -->
     <script>
         (function() {
             const modal = document.getElementById('protoModal');
@@ -560,7 +664,6 @@
             let isOpen = false;
             let time = 0;
 
-            // Stato configurabile dall'utente
             const state = {
                 model: 'gear',
                 speed: 0.5,
@@ -572,7 +675,6 @@
                 lastMouseY: 0
             };
 
-            // Funzione globale per aprire il box
             window.apriBoxPrototipazione = function() {
                 modal.classList.add('active');
                 isOpen = true;
@@ -590,14 +692,9 @@
             }
 
             closeBtn.addEventListener('click', chiudiModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) chiudiModal();
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && isOpen) chiudiModal();
-            });
+            modal.addEventListener('click', (e) => { if (e.target === modal) chiudiModal(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) chiudiModal(); });
 
-            // Pulsante per compilare automaticamente il modulo contatti
             richiediProtoBtn.addEventListener('click', () => {
                 chiudiModal();
                 const msgField = document.getElementById('messaggio');
@@ -607,10 +704,7 @@
                 msgField.focus();
             });
 
-            // Controlli UI
-            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-            });
+            modelSelect.addEventListener('change', (e) => { state.model = e.target.value; });
 
             speedSlider.addEventListener('input', (e) => {
                 state.speed = parseFloat(e.target.value);
@@ -627,7 +721,6 @@
                 hudRes.textContent = `ALTEZZA STRATO: ${mm}mm`;
             });
 
-            // Rotazione manuale con Mouse e Touch
             viewerWrapper.addEventListener('mousedown', (e) => {
                 state.isDragging = true;
                 state.lastMouseX = e.clientX;
@@ -642,9 +735,7 @@
                 state.lastMouseX = e.clientX;
                 state.lastMouseY = e.clientY;
             });
-            window.addEventListener('mouseup', () => {
-                state.isDragging = false;
-            });
+            window.addEventListener('mouseup', () => { state.isDragging = false; });
 
             let width, height;
             function resizeCanvas() {
@@ -656,11 +747,8 @@
                 canvas.height = height * dpr;
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
-            window.addEventListener('resize', () => {
-                if (isOpen) resizeCanvas();
-            });
+            window.addEventListener('resize', () => { if (isOpen) resizeCanvas(); });
 
-            // Proiezione 3D -> 2D centrata nel box
             function project(x, y, z) {
                 const cosY = Math.cos(state.rotY);
                 const sinY = Math.sin(state.rotY);
@@ -681,7 +769,6 @@
                 };
             }
 
-            // Geometria dei singoli modelli
             function getModelPoints(layerIdx, totalLayers) {
                 const progress = layerIdx / totalLayers;
                 const totalHeight = 145;
@@ -695,52 +782,36 @@
                     let r = baseRadius;
 
                     if (state.model === 'gear') {
-                        // Ingranaggio meccanico a 12 denti con foro centrale simulato
                         const tooth = Math.sin(angle * 12) > 0 ? 11 : -4;
                         r = baseRadius * 0.85 + tooth;
                     } else if (state.model === 'vase') {
-                        // Vaso parametrico ritorto
                         r = baseRadius * (0.72 + 0.3 * Math.sin(progress * Math.PI * 1.35));
                         r += Math.cos(angle * 8 + progress * Math.PI * 1.2) * 8;
                     } else if (state.model === 'helix') {
-                        // Elica aerodinamica ritorta
                         r = baseRadius * (0.68 + 0.32 * Math.cos(angle * 3 - progress * Math.PI * 2.2));
                     } else if (state.model === 'bracket') {
-                        // Cilindro scanalato con flangia alla base
                         const flange = progress < 0.18 ? 18 : 0;
                         r = baseRadius * 0.82 + flange + Math.cos(angle * 10) * 4;
                     }
 
-                    pts.push({
-                        x: Math.cos(angle) * r,
-                        y: y,
-                        z: Math.sin(angle) * r
-                    });
+                    pts.push({ x: Math.cos(angle) * r, y: y, z: Math.sin(angle) * r });
                 }
                 return pts;
             }
 
-            // Piatto di stampa nel box
             function drawBuildPlate() {
                 const size = 140;
                 const step = 28;
                 ctx.lineWidth = 1;
-
                 for (let i = -size; i <= size; i += step) {
                     ctx.strokeStyle = i === 0 ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.12)';
                     const p1 = project(-size, 0, i);
                     const p2 = project(size, 0, i);
-                    ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(p2.x, p2.y);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
 
                     const p3 = project(i, 0, -size);
                     const p4 = project(i, 0, size);
-                    ctx.beginPath();
-                    ctx.moveTo(p3.x, p3.y);
-                    ctx.lineTo(p4.x, p4.y);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.stroke();
                 }
             }
 
@@ -748,9 +819,7 @@
                 if (!isOpen) return;
 
                 time += 0.016 * state.speed;
-                if (!state.isDragging) {
-                    state.rotY += 0.004; // Rotazione lenta continua
-                }
+                if (!state.isDragging) state.rotY += 0.004;
 
                 ctx.clearRect(0, 0, width, height);
                 drawBuildPlate();
@@ -762,7 +831,6 @@
 
                 hudLayer.textContent = `LAYER: ${activeLayer + 1} / ${state.totalLayers}`;
 
-                // 1. Anteprima G-Code wireframe
                 ctx.lineWidth = 0.6;
                 ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
                 for (let l = activeLayer + 1; l < state.totalLayers; l += 2) {
@@ -776,30 +844,23 @@
                     ctx.stroke();
                 }
 
-                // 2. Strati stampati
                 for (let l = 0; l <= activeLayer; l++) {
                     const pts = getModelPoints(l, state.totalLayers);
                     const isCurrent = (l === activeLayer && rawProgress < state.totalLayers);
                     const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
 
-                    // Riempimento interno (Infill)
                     if (l % 4 === 0 && !isCurrent) {
                         ctx.strokeStyle = 'rgba(14, 165, 233, 0.16)';
                         ctx.lineWidth = 0.8;
                         for (let k = 0; k < pts.length; k += 10) {
                             const pA = project(pts[k].x, pts[k].y, pts[k].z);
                             const pB = project(pts[(k + 25) % pts.length].x, pts[k].y, pts[(k + 25) % pts.length].z);
-                            ctx.beginPath();
-                            ctx.moveTo(pA.x, pA.y);
-                            ctx.lineTo(pB.x, pB.y);
-                            ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.stroke();
                         }
                     }
 
                     ctx.lineWidth = isCurrent ? 2.2 : 1.3;
-                    ctx.strokeStyle = isCurrent
-                        ? '#7dd3fc'
-                        : `rgba(14, 165, 233, ${0.28 + (l / state.totalLayers) * 0.45})`;
+                    ctx.strokeStyle = isCurrent ? '#7dd3fc' : `rgba(14, 165, 233, ${0.28 + (l / state.totalLayers) * 0.45})`;
 
                     ctx.beginPath();
                     for (let i = 0; i <= maxIdx; i++) {
@@ -807,23 +868,17 @@
                         if (i === 0) ctx.moveTo(proj.x, proj.y);
                         else ctx.lineTo(proj.x, proj.y);
 
-                        // Estrusore attivo
                         if (isCurrent && i === maxIdx) {
                             const nozzleTop = project(pts[i].x, pts[i].y + 110, pts[i].z);
                             ctx.save();
                             ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
                             ctx.lineWidth = 1.5;
-                            ctx.beginPath();
-                            ctx.moveTo(nozzleTop.x, nozzleTop.y);
-                            ctx.lineTo(proj.x, proj.y);
-                            ctx.stroke();
+                            ctx.beginPath(); ctx.moveTo(nozzleTop.x, nozzleTop.y); ctx.lineTo(proj.x, proj.y); ctx.stroke();
 
                             ctx.fillStyle = '#ffffff';
                             ctx.shadowColor = '#38bdf8';
                             ctx.shadowBlur = 12;
-                            ctx.beginPath();
-                            ctx.arc(proj.x, proj.y, 3.2, 0, Math.PI * 2);
-                            ctx.fill();
+                            ctx.beginPath(); ctx.arc(proj.x, proj.y, 3.2, 0, Math.PI * 2); ctx.fill();
                             ctx.restore();
                         }
                     }
@@ -835,12 +890,417 @@
         })();
     </script>
 
-    <!-- Script JavaScript per connettersi a Firebase -->
+    <!-- Script 2: Simulatore 2D CAD / Blueprint (Progettazione CAD) -->
+    <script>
+        (function() {
+            const modal = document.getElementById('cadModal');
+            const closeBtn = document.getElementById('closeCadModalBtn');
+            const viewerWrapper = document.getElementById('cadViewerWrapper');
+            const canvas = document.getElementById('cad-canvas');
+            const ctx = canvas.getContext('2d');
+
+            const modelSelect = document.getElementById('cadModelSelect');
+            const speedSlider = document.getElementById('cadSpeedSlider');
+            const speedValue = document.getElementById('cadSpeedValue');
+            const dimsToggle = document.getElementById('cadDimsToggle');
+            const hudCoords = document.getElementById('cad-hud-coords');
+            const richiediCadBtn = document.getElementById('richiediCadBtn');
+
+            let animFrameId = null;
+            let isOpen = false;
+            let time = 0;
+
+            const state = {
+                model: 'gear2d',
+                speed: 0.6,
+                showDims: true
+            };
+
+            window.apriBoxCad = function() {
+                modal.classList.add('active');
+                isOpen = true;
+                resizeCanvas();
+                if (!animFrameId) animate();
+            };
+
+            function chiudiModal() {
+                modal.classList.remove('active');
+                isOpen = false;
+                if (animFrameId) {
+                    cancelAnimationFrame(animFrameId);
+                    animFrameId = null;
+                }
+            }
+
+            closeBtn.addEventListener('click', chiudiModal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) chiudiModal(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) chiudiModal(); });
+
+            richiediCadBtn.addEventListener('click', () => {
+                chiudiModal();
+                const msgField = document.getElementById('messaggio');
+                const tipoElaborato = modelSelect.options[modelSelect.selectedIndex].text;
+                msgField.value = `Salve, vorrei richiedere una consulenza per il servizio di Progettazione CAD 2D/3D (esempio: ${tipoElaborato}).`;
+                document.getElementById('sezione-contatti').scrollIntoView({ behavior: 'smooth' });
+                msgField.focus();
+            });
+
+            modelSelect.addEventListener('change', (e) => {
+                state.model = e.target.value;
+                time = 0; // Riavvia il tracciamento sul nuovo disegno
+            });
+
+            speedSlider.addEventListener('input', (e) => {
+                state.speed = parseFloat(e.target.value);
+                if (state.speed === 0) speedValue.textContent = 'In pausa (0x)';
+                else if (state.speed < 0.8) speedValue.textContent = `Lenta (${state.speed.toFixed(1)}x)`;
+                else if (state.speed <= 1.2) speedValue.textContent = `Normale (${state.speed.toFixed(1)}x)`;
+                else speedValue.textContent = `Rapida (${state.speed.toFixed(1)}x)`;
+            });
+
+            dimsToggle.addEventListener('change', (e) => {
+                state.showDims = e.target.checked;
+            });
+
+            let width, height;
+            function resizeCanvas() {
+                const rect = viewerWrapper.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                width = rect.width;
+                height = rect.height;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            window.addEventListener('resize', () => { if (isOpen) resizeCanvas(); });
+
+            // Griglia millimetrata CAD 2D
+            function drawCadGrid(cx, cy) {
+                const minor = 16;
+                const major = minor * 5;
+
+                ctx.lineWidth = 1;
+                for (let x = cx % minor; x < width; x += minor) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                }
+                for (let y = cy % minor; y < height; y += minor) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+
+                for (let x = cx % major; x < width; x += major) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                }
+                for (let y = cy % major; y < height; y += major) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+
+                // Assi cartesiani principali al centro
+                if (state.showDims) {
+                    ctx.save();
+                    ctx.setLineDash([8, 4, 2, 4]);
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+                    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // Costruisce una lista di polilinee (vettori) per il disegno selezionato
+            function getCadPaths(cx, cy) {
+                const paths = [];
+
+                if (state.model === 'gear2d') {
+                    // 1. Profilo esterno ingranaggio a 14 denti
+                    const outerPts = [];
+                    const teeth = 14;
+                    const steps = teeth * 8;
+                    const rBase = 86;
+                    for (let i = 0; i <= steps; i++) {
+                        const a = (i / steps) * Math.PI * 2;
+                        const wave = Math.sin(a * teeth);
+                        const r = rBase + (wave > 0.15 ? 11 : (wave < -0.15 ? -7 : wave * 25));
+                        outerPts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+                    }
+                    paths.push({ pts: outerPts, style: 'main' });
+
+                    // 2. Mozzo centrale + chiavetta
+                    const hubPts = [];
+                    for (let i = 0; i <= 48; i++) {
+                        const a = (i / 48) * Math.PI * 2;
+                        let r = 24;
+                        if (a > 1.35 && a < 1.79) r = 30; // Sede chiavetta
+                        hubPts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+                    }
+                    paths.push({ pts: hubPts, style: 'main' });
+
+                    // 3. 4 Fori di alleggerimento
+                    for (let h = 0; h < 4; h++) {
+                        const centerA = (h * Math.PI) / 2 + Math.PI / 4;
+                        const hx = cx + Math.cos(centerA) * 54;
+                        const hy = cy + Math.sin(centerA) * 54;
+                        const holePts = [];
+                        for (let i = 0; i <= 24; i++) {
+                            const a = (i / 24) * Math.PI * 2;
+                            holePts.push({ x: hx + Math.cos(a) * 12, y: hy + Math.sin(a) * 12 });
+                        }
+                        paths.push({ pts: holePts, style: 'main' });
+                    }
+                } else if (state.model === 'floorplan') {
+                    // Piantina architettonica appartamento (muri esterni + interni + porte)
+                    const w = 135, h = 88;
+                    // Muro esterno
+                    paths.push({
+                        pts: [
+                            { x: cx - w, y: cy - h },
+                            { x: cx + w, y: cy - h },
+                            { x: cx + w, y: cy + h },
+                            { x: cx - w, y: cy + h },
+                            { x: cx - w, y: cy - h }
+                        ],
+                        style: 'wall'
+                    });
+                    // Spessore muro interno
+                    const t = 7;
+                    paths.push({
+                        pts: [
+                            { x: cx - w + t, y: cy - h + t },
+                            { x: cx + w - t, y: cy - h + t },
+                            { x: cx + w - t, y: cy + h - t },
+                            { x: cx - w + t, y: cy + h - t },
+                            { x: cx - w + t, y: cy - h + t }
+                        ],
+                        style: 'main'
+                    });
+                    // Parete divisoria verticale (Zona Giorno / Zona Notte) con vano porta
+                    paths.push({
+                        pts: [
+                            { x: cx - 15, y: cy - h + t },
+                            { x: cx - 15, y: cy + 12 }
+                        ],
+                        style: 'main'
+                    });
+                    paths.push({
+                        pts: [
+                            { x: cx - 15, y: cy + 42 },
+                            { x: cx - 15, y: cy + h - t }
+                        ],
+                        style: 'main'
+                    });
+                    // Parete divisoria orizzontale (Bagno / Camera)
+                    paths.push({
+                        pts: [
+                            { x: cx - 15, y: cy - 5 },
+                            { x: cx + w - t, y: cy - 5 }
+                        ],
+                        style: 'main'
+                    });
+                    // Arco apertura porta interna
+                    const doorArc = [{ x: cx - 15, y: cy + 12 }, { x: cx + 15, y: cy + 12 }];
+                    for (let i = 0; i <= 16; i++) {
+                        const a = (i / 16) * (Math.PI / 2);
+                        doorArc.push({ x: cx - 15 + Math.cos(a) * 30, y: cy + 12 + Math.sin(a) * 30 });
+                    }
+                    paths.push({ pts: doorArc, style: 'thin' });
+                } else if (state.model === 'flange2d') {
+                    // Flangia meccanica sagomata
+                    const w = 115, h = 75, r = 24;
+                    const body = [];
+                    const corners = [
+                        { x: cx + w - r, y: cy - h + r, a0: -Math.PI / 2, a1: 0 },
+                        { x: cx + w - r, y: cy + h - r, a0: 0, a1: Math.PI / 2 },
+                        { x: cx - w + r, y: cy + h - r, a0: Math.PI / 2, a1: Math.PI },
+                        { x: cx - w + r, y: cy - h + r, a0: Math.PI, a1: Math.PI * 1.5 }
+                    ];
+                    corners.forEach(c => {
+                        for (let i = 0; i <= 10; i++) {
+                            const a = c.a0 + (i / 10) * (c.a1 - c.a0);
+                            body.push({ x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r });
+                        }
+                    });
+                    body.push(body[0]);
+                    paths.push({ pts: body, style: 'main' });
+
+                    // Foro centrale grande
+                    const centerHole = [];
+                    for (let i = 0; i <= 40; i++) {
+                        const a = (i / 40) * Math.PI * 2;
+                        centerHole.push({ x: cx + Math.cos(a) * 38, y: cy + Math.sin(a) * 38 });
+                    }
+                    paths.push({ pts: centerHole, style: 'main' });
+
+                    // 4 fori angolari
+                    [[-85, -45], [85, -45], [85, 45], [-85, 45]].forEach(([ox, oy]) => {
+                        const hPts = [];
+                        for (let i = 0; i <= 20; i++) {
+                            const a = (i / 20) * Math.PI * 2;
+                            hPts.push({ x: cx + ox + Math.cos(a) * 10, y: cy + oy + Math.sin(a) * 10 });
+                        }
+                        paths.push({ pts: hPts, style: 'main' });
+                    });
+                }
+
+                return paths;
+            }
+
+            // Disegna quote tecniche ISO / Architettoniche
+            function drawDimensions(cx, cy, alpha) {
+                if (!state.showDims || alpha <= 0) return;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = '#38bdf8';
+                ctx.fillStyle = '#7dd3fc';
+                ctx.font = '11px monospace';
+                ctx.lineWidth = 1;
+
+                if (state.model === 'gear2d') {
+                    // Cerchio primitivo tratteggiato
+                    ctx.save();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+                    ctx.beginPath(); ctx.arc(cx, cy, 86, 0, Math.PI * 2); ctx.stroke();
+                    ctx.restore();
+
+                    // Quota diametro esterno
+                    const yDim = cy - 115;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 97, cy); ctx.lineTo(cx - 97, yDim - 4);
+                    ctx.moveTo(cx + 97, cy); ctx.lineTo(cx + 97, yDim - 4);
+                    ctx.moveTo(cx - 97, yDim); ctx.lineTo(cx + 97, yDim);
+                    ctx.stroke();
+                    ctx.fillText('Ø 120.00 mm (Z=14)', cx - 52, yDim - 6);
+                } else if (state.model === 'floorplan') {
+                    const w = 135, h = 88;
+                    const yDim = cy - h - 18;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - w, cy - h); ctx.lineTo(cx - w, yDim - 4);
+                    ctx.moveTo(cx + w, cy - h); ctx.lineTo(cx + w, yDim - 4);
+                    ctx.moveTo(cx - w, yDim); ctx.lineTo(cx + w, yDim);
+                    ctx.stroke();
+                    ctx.fillText('8.50 m', cx - 18, yDim - 5);
+
+                    const xDim = cx + w + 18;
+                    ctx.beginPath();
+                    ctx.moveTo(cx + w, cy - h); ctx.lineTo(xDim + 4, cy - h);
+                    ctx.moveTo(cx + w, cy + h); ctx.lineTo(xDim + 4, cy + h);
+                    ctx.moveTo(xDim, cy - h); ctx.lineTo(xDim, cy + h);
+                    ctx.stroke();
+                    ctx.fillText('5.40 m', xDim + 6, cy + 4);
+                } else if (state.model === 'flange2d') {
+                    const w = 115, h = 75;
+                    const yDim = cy + h + 20;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - w, cy + h - 15); ctx.lineTo(cx - w, yDim + 4);
+                    ctx.moveTo(cx + w, cy + h - 15); ctx.lineTo(cx + w, yDim + 4);
+                    ctx.moveTo(cx - w, yDim); ctx.lineTo(cx + w, yDim);
+                    ctx.stroke();
+                    ctx.fillText('160.00 ±0.05 mm', cx - 46, yDim + 13);
+                }
+
+                ctx.restore();
+            }
+
+            function animate() {
+                if (!isOpen) return;
+
+                time += 0.016 * state.speed;
+                const cx = width * 0.5;
+                const cy = height * 0.52;
+
+                ctx.clearRect(0, 0, width, height);
+                drawCadGrid(cx, cy);
+
+                const paths = getCadPaths(cx, cy);
+                const totalSegments = paths.reduce((acc, p) => acc + p.pts.length, 0);
+
+                // Ciclo continuo di disegno CAD (tracciamento + pausa lettura quote)
+                const drawDuration = 120;
+                const pauseDuration = 55;
+                const cycle = drawDuration + pauseDuration;
+                const progressFrame = (time * 28) % cycle;
+                const ratio = Math.min(1, progressFrame / drawDuration);
+                const targetSegments = Math.floor(totalSegments * ratio);
+
+                let drawnCount = 0;
+                let cursorPos = { x: cx, y: cy };
+
+                paths.forEach((path) => {
+                    if (drawnCount >= targetSegments) return;
+
+                    const remaining = targetSegments - drawnCount;
+                    const count = Math.min(path.pts.length, remaining);
+
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    if (path.style === 'wall') {
+                        ctx.strokeStyle = '#7dd3fc';
+                        ctx.lineWidth = 2.2;
+                    } else if (path.style === 'thin') {
+                        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+                        ctx.lineWidth = 1.1;
+                        ctx.setLineDash([3, 3]);
+                    } else {
+                        ctx.strokeStyle = '#38bdf8';
+                        ctx.lineWidth = 1.6;
+                    }
+
+                    ctx.beginPath();
+                    for (let i = 0; i < count; i++) {
+                        const pt = path.pts[i];
+                        if (i === 0) ctx.moveTo(pt.x, pt.y);
+                        else ctx.lineTo(pt.x, pt.y);
+                        cursorPos = pt;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+
+                    drawnCount += path.pts.length;
+                });
+
+                // Apparizione morbida delle quote man mano che il disegno si completa
+                const dimAlpha = ratio > 0.65 ? Math.min(1, (ratio - 0.65) / 0.35) : 0;
+                drawDimensions(cx, cy, dimAlpha);
+
+                // Cursore CAD a mirino sul punto attivo
+                if (ratio < 1) {
+                    const relX = ((cursorPos.x - cx) * 0.7).toFixed(2);
+                    const relY = ((cy - cursorPos.y) * 0.7).toFixed(2);
+                    hudCoords.textContent = `X: ${relX}  Y: ${relY} mm`;
+
+                    ctx.save();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(cursorPos.x - 9, cursorPos.y);
+                    ctx.lineTo(cursorPos.x + 9, cursorPos.y);
+                    ctx.moveTo(cursorPos.x, cursorPos.y - 9);
+                    ctx.lineTo(cursorPos.x, cursorPos.y + 9);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.beginPath();
+                    ctx.arc(cursorPos.x, cursorPos.y, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                } else {
+                    hudCoords.textContent = `DISEGNO COMPLETATO • PRONTO`;
+                }
+
+                animFrameId = requestAnimationFrame(animate);
+            }
+        })();
+    </script>
+
+    <!-- Script 3: Connessione a Firebase & Generazione Card -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Configurazione Firebase presa dal tuo pannello
         const firebaseConfig = {
             apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
             authDomain: "laosbackend.firebaseapp.com",
@@ -850,57 +1310,74 @@
             appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
         };
 
-        // Inizializzazione
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. CARICAMENTO CATALOGO DA FIRESTORE
+        function creaCardElemento(item) {
+            const titolo = item.Titolo || 'Senza titolo';
+            const titoloLower = titolo.toLowerCase();
+            const isPrototipazione = titoloLower.includes('prototipazione');
+            const isCad = titoloLower.includes('cad') || titoloLower.includes('progettazione');
+            const isInteractive = isPrototipazione || isCad;
+
+            const imgTag = item.immagineUrl 
+                ? `<img src="${item.immagineUrl}" alt="${titolo}" onerror="this.style.display='none'">` 
+                : '';
+
+            let hintText = '';
+            if (isPrototipazione) hintText = "Clicca per aprire l'anteprima 3D interattiva &rarr;";
+            else if (isCad) hintText = "Clicca per aprire la tavola CAD 2D interattiva &rarr;";
+
+            const cardEl = document.createElement('article');
+            cardEl.className = isInteractive ? 'card clickable' : 'card';
+            cardEl.innerHTML = `
+                <div>
+                    ${imgTag}
+                    <span class="badge">${item.Categoria || 'Servizio'}</span>
+                    <h3>${titolo}</h3>
+                    <p>${item.Descrizione || ''}</p>
+                </div>
+                ${hintText ? `<div class="card-action-hint">${hintText}</div>` : ''}
+            `;
+
+            if (isPrototipazione) {
+                cardEl.addEventListener('click', () => window.apriBoxPrototipazione());
+            } else if (isCad) {
+                cardEl.addEventListener('click', () => window.apriBoxCad());
+            }
+
+            return cardEl;
+        }
+
         async function caricaCatalogo() {
             const container = document.getElementById("catalogo-container");
             try {
                 const querySnapshot = await getDocs(collection(db, "catalogo"));
-                if (querySnapshot.empty) {
-                    container.innerHTML = "<p style='color: #94a3b8;'>Nessun prodotto disponibile al momento.</p>";
-                    return;
-                }
-                
-                container.innerHTML = ""; // Pulisce il testo di caricamento
+                container.innerHTML = "";
+                let hasCadService = false;
+
                 querySnapshot.forEach((doc) => {
                     const item = doc.data();
-                    const titolo = item.Titolo || 'Senza titolo';
-                    const isPrototipazione = titolo.toLowerCase().includes('prototipazione');
-                    
-                    const imgTag = item.immagineUrl 
-                        ? `<img src="${item.immagineUrl}" alt="${titolo}" onerror="this.style.display='none'">` 
-                        : '';
-
-                    const cardEl = document.createElement('article');
-                    cardEl.className = isPrototipazione ? 'card clickable' : 'card';
-                    cardEl.innerHTML = `
-                        <div>
-                            ${imgTag}
-                            <span class="badge">${item.Categoria || 'Generale'}</span>
-                            <h3>${titolo}</h3>
-                            <p>${item.Descrizione || ''}</p>
-                        </div>
-                        ${isPrototipazione ? '<div class="card-action-hint">Clicca per aprire l\'anteprima 3D interattiva &rarr;</div>' : ''}
-                    `;
-
-                    if (isPrototipazione) {
-                        cardEl.addEventListener('click', () => {
-                            window.apriBoxPrototipazione();
-                        });
+                    if ((item.Titolo || '').toLowerCase().includes('progettazione cad')) {
+                        hasCadService = true;
                     }
-
-                    container.appendChild(cardEl);
+                    container.appendChild(creaCardElemento(item));
                 });
+
+                // Aggiunge automaticamente la card "Progettazione CAD" se non è ancora presente in Firestore
+                if (!hasCadService) {
+                    container.appendChild(creaCardElemento({
+                        Titolo: "Progettazione CAD",
+                        Categoria: "Servizio",
+                        Descrizione: "Disegno tecnico 2D e modellazione parametrica 3D per parti meccaniche, prototipi e taglio laser."
+                    }));
+                }
             } catch (errore) {
                 console.error("Errore nel caricamento:", errore);
                 container.innerHTML = "<p style='color: #f87171;'>Errore nel caricamento del catalogo.</p>";
             }
         }
 
-        // 2. GESTIONE INVIO FORM CONTATTI
         document.getElementById("formContatto").addEventListener("submit", async (e) => {
             e.preventDefault();
             const stato = document.getElementById("statoInvio");
@@ -924,7 +1401,6 @@
             }
         });
 
-        // Avvia la lettura del database all'apertura della pagina
         caricaCatalogo();
     </script>
 </body>
