@@ -1,83 +1,126 @@
-```python
-with open("index.html", "r", encoding="utf-8") as f:
-    src = f.read()
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laos Engineering / 3DParts - Servizi 2D & 3D</title>
+    <link rel="stylesheet" href="style.css">
 
-old_head_style = """    <style>
-        /* Armonizzazione layout modale Prototipazione componenti in 3D */
-        #protoModal .modal-box {
-            max-width: 1120px;
-            width: 94%;
+    <style>
+        /* Armonizzazione layout modali 16:9 - Prototipazione 3D e Progettazione CAD */
+        #protoModal .modal-box,
+        #cadModal .modal-box {
+            width: min(96vw, 1280px);
+            aspect-ratio: 16 / 9;
+            max-height: 92vh;
             border-radius: 16px;
             border: 1px solid rgba(148, 163, 184, 0.22);
             background: #0b1220;
             box-shadow: 0 24px 64px rgba(2, 6, 23, 0.72);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        #protoModal .modal-header {
-            padding: 18px 24px;
+        @media (max-width: 1024px) {
+            #protoModal .modal-box,
+            #cadModal .modal-box {
+                width: 95%;
+                aspect-ratio: auto;
+                max-height: 92vh;
+                overflow-y: auto;
+            }
+        }
+        #protoModal .modal-header,
+        #cadModal .modal-header {
+            padding: 14px 22px;
             border-bottom: 1px solid rgba(148, 163, 184, 0.16);
             background: rgba(15, 23, 42, 0.85);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
         }
-        #protoModal .modal-header h3 {
+        #protoModal .modal-header h3,
+        #cadModal .modal-header h3 {
             margin: 0;
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 700;
             letter-spacing: -0.2px;
             color: #f1f5f9;
         }
-        #protoModal .modal-body {
+        #protoModal .modal-body,
+        #cadModal .modal-body {
+            flex: 1;
+            min-height: 0;
             display: grid;
-            grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
-            gap: 24px;
-            padding: 24px;
+            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
+            gap: 20px;
+            padding: 18px 22px;
             align-items: stretch;
         }
         @media (max-width: 900px) {
-            #protoModal .modal-body {
+            #protoModal .modal-body,
+            #cadModal .modal-body {
                 grid-template-columns: 1fr;
-                padding: 18px;
-                gap: 18px;
+                padding: 16px;
+                gap: 16px;
             }
         }
-        .proto-left-col {
+        .modal-left-col {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             min-width: 0;
+            min-height: 0;
         }
-        #protoModal .viewer-wrapper {
+        #protoModal .viewer-wrapper,
+        #cadModal .viewer-wrapper {
             position: relative;
             width: 100%;
-            height: 360px;
+            flex: 1;
+            min-height: 220px;
             border-radius: 14px;
             border: 1px solid rgba(56, 189, 248, 0.22);
             background: radial-gradient(circle at 50% 45%, rgba(14, 165, 233, 0.12), rgba(7, 13, 25, 0.96) 72%);
             overflow: hidden;
         }
-        #slicer-canvas {
+        #slicer-canvas,
+        #cad-canvas {
             width: 100%;
             height: 100%;
             display: block;
         }
-        .slicer-hud-stack {
+        .hud-top-stack {
             position: absolute;
-            top: 14px;
-            left: 16px;
-            right: 16px;
+            top: 12px;
+            left: 14px;
+            right: 14px;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
             z-index: 4;
             pointer-events: none;
         }
-        .slicer-hud-badge-row {
+        .hud-left-stack {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 7px;
         }
-        .slicer-inner-badge {
+        .hud-right-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #bae6fd;
+            text-align: right;
+            line-height: 1.35;
+        }
+        .sim-inner-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -86,25 +129,22 @@ old_head_style = """    <style>
             border: 1px solid rgba(56, 189, 248, 0.42);
             padding: 4px 12px;
             border-radius: 999px;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
             letter-spacing: 0.3px;
         }
-        .slicer-hud-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
+        .hud-sub-line {
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #bae6fd;
+            line-height: 1.35;
         }
         .slicer-bottom-bar {
             position: absolute;
-            left: 14px;
-            right: 14px;
-            bottom: 14px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
             z-index: 5;
             display: flex;
             align-items: center;
@@ -115,17 +155,17 @@ old_head_style = """    <style>
             background: rgba(15, 23, 42, 0.86);
             border: 1px solid rgba(148, 163, 184, 0.24);
             border-radius: 10px;
-            padding: 8px 14px;
+            padding: 7px 12px;
             backdrop-filter: blur(8px);
         }
         .slicer-embedded-slider-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #e2e8f0;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .slicer-embedded-slider-top span {
             color: #38bdf8;
@@ -139,7 +179,7 @@ old_head_style = """    <style>
         }
         #protoModal .speed-pill-btn {
             position: static;
-            height: 44px;
+            height: 42px;
             min-width: 46px;
             padding: 0 12px;
             border-radius: 10px;
@@ -160,1336 +200,220 @@ old_head_style = """    <style>
             color: #38bdf8;
             background: rgba(14, 165, 233, 0.14);
         }
+        #cadModal .speed-pill-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            z-index: 5;
+        }
         .left-selectors-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .left-single-selector {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            flex-shrink: 0;
         }
         @media (max-width: 640px) {
             .left-selectors-grid {
                 grid-template-columns: 1fr;
             }
         }
-        .left-selectors-grid .control-group {
+        .modal-left-col .control-group {
             margin-bottom: 0;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
-        .left-selectors-grid .control-group label {
-            font-size: 12.5px;
+        .modal-left-col .control-group label {
+            font-size: 12px;
             font-weight: 600;
             color: #94a3b8;
         }
-        .left-selectors-grid .control-group select {
+        .modal-left-col .control-group select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 9px 12px;
             border-radius: 10px;
             border: 1px solid rgba(148, 163, 184, 0.26);
             background: #111b2e;
             color: #f8fafc;
-            font-size: 13.5px;
+            font-size: 13px;
             outline: none;
         }
-        .left-selectors-grid .control-group select:focus {
+        .modal-left-col .control-group select:focus {
             border-color: #38bdf8;
         }
-        #protoModal .controls-panel {
+        #protoModal .controls-panel,
+        #cadModal .controls-panel {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             min-width: 0;
+            min-height: 0;
         }
         .single-detail-card {
             background: rgba(15, 23, 42, 0.78);
             border: 1px solid rgba(148, 163, 184, 0.2);
             border-radius: 14px;
-            padding: 18px;
+            padding: 15px 16px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 11px;
             flex: 1;
+            min-height: 0;
+            overflow-y: auto;
         }
         .detail-block-tag {
             display: inline-block;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+        .single-detail-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #38bdf8;
+            line-height: 1.3;
+        }
+        .single-detail-text {
+            margin: 4px 0 0 0;
+            font-size: 12.5px;
+            line-height: 1.48;
+            color: #cbd5e1;
+        }
+        .single-detail-divider {
+            border: 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.16);
+            margin: 0;
+        }
+        .mat-specs-box {
+            margin-top: 9px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(148, 163, 184, 0.18);
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .mat-specs-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            line-height: 1.35;
+        }
+        .mat-specs-row strong {
+            color: #e2e8f0;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .mat-specs-row span {
+            text-align: right;
+            color: #cbd5e1;
+        }
+        #cadModal .checkbox-row {
+            margin-bottom: 0;
+            padding: 9px 12px;
+        }
+        #cadModal .specs-pills {
+            margin-top: 8px;
+            gap: 6px;
+        }
+        #richiediProtoBtn.btn-primary,
+        #richiediCadBtn.btn-primary {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 11px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1.25;
+            flex-shrink: 0;
+        }
+        body.light-mode #protoModal .modal-box,
+        body.light-mode #cadModal .modal-box {
+            background: #ffffff;
+            border-color: #cbd5e1;
+        }
+        body.light-mode #protoModal .modal-header,
+        body.light-mode #cadModal .modal-header {
+            background: #f8fafc;
+            border-bottom-color: #e2e8f0;
+        }
+        body.light-mode #protoModal .modal-header h3,
+        body.light-mode #cadModal .modal-header h3 {
+            color: #0f172a;
+        }
+        body.light-mode #protoModal .viewer-wrapper,
+        body.light-mode #cadModal .viewer-wrapper {
+            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
+            border-color: #cbd5e1;
+        }
+        body.light-mode .hud-right-stack,
+        body.light-mode .hud-sub-line {
+            color: #0369a1;
+        }
+        body.light-mode .slicer-embedded-slider,
+        body.light-mode #protoModal .speed-pill-btn {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        body.light-mode .slicer-embedded-slider-top {
+            color: #0f172a;
+        }
+        body.light-mode .modal-left-col .control-group select {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+        body.light-mode .single-detail-card {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        body.light-mode .single-detail-title {
+            color: #0369a1;
+        }
+        body.light-mode .single-detail-text,
+        body.light-mode .mat-specs-row span {
+            color: #334155;
+        }
+        body.light-mode .mat-specs-row strong {
+            color: #0f172a;
+        }
+
+        .single-detail-card {
+            justify-content: space-between;
+            gap: 10px;
+            overflow-y: auto;
+        }
+        #cadModal .specs-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        #cadModal .spec-pill {
             font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 4px;
-        }
-        .single-detail-title {
-            margin: 0;
-            font-size: 15.5px;
-            font-weight: 700;
-            color: #38bdf8;
-            line-height: 1.35;
-        }
-        .single-detail-text {
-            margin: 6px 0 0 0;
-            font-size: 13px;
-            line-height: 1.55;
-            color: #cbd5e1;
-        }
-        .single-detail-divider {
-            border: 0;
-            border-top: 1px solid rgba(148, 163, 184, 0.16);
-            margin: 0;
-        }
-        .mat-specs-box {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.18);
-            font-size: 12.5px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .mat-specs-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            line-height: 1.4;
-        }
-        .mat-specs-row strong {
-            color: #e2e8f0;
             font-weight: 600;
-            flex-shrink: 0;
-        }
-        .mat-specs-row span {
-            text-align: right;
-            color: #cbd5e1;
-        }
-        #richiediProtoBtn.btn-primary {
-            width: 100%;
-            padding: 13px 18px;
-            border-radius: 11px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1.3;
-        }
-        body.light-mode #protoModal .modal-box {
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
-        body.light-mode #protoModal .modal-header {
-            background: #f8fafc;
-            border-bottom-color: #e2e8f0;
-        }
-        body.light-mode #protoModal .modal-header h3 {
-            color: #0f172a;
-        }
-        body.light-mode #protoModal .viewer-wrapper {
-            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
-            border-color: #cbd5e1;
-        }
-        body.light-mode .slicer-hud-meta {
-            color: #0369a1;
-        }
-        body.light-mode .slicer-embedded-slider,
-        body.light-mode #protoModal .speed-pill-btn {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-        body.light-mode .slicer-embedded-slider-top {
-            color: #0f172a;
-        }
-        body.light-mode .left-selectors-grid .control-group select {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        body.light-mode .single-detail-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        body.light-mode .single-detail-title {
-            color: #0369a1;
-        }
-        body.light-mode .single-detail-text,
-        body.light-mode .mat-specs-row span {
-            color: #334155;
-        }
-        body.light-mode .mat-specs-row strong {
-            color: #0f172a;
-        }
-    </style>"""
-
-new_head_style = """    <style>
-        /* Armonizzazione layout modali 16:9 - Prototipazione 3D e Progettazione CAD */
-        #protoModal .modal-box,
-        #cadModal .modal-box {
-            width: min(96vw, 1280px);
-            aspect-ratio: 16 / 9;
-            max-height: 92vh;
-            border-radius: 16px;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: #0b1220;
-            box-shadow: 0 24px 64px rgba(2, 6, 23, 0.72);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        @media (max-width: 1024px) {
-            #protoModal .modal-box,
-            #cadModal .modal-box {
-                width: 95%;
-                aspect-ratio: auto;
-                max-height: 92vh;
-                overflow-y: auto;
-            }
-        }
-        #protoModal .modal-header,
-        #cadModal .modal-header {
-            padding: 14px 22px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        #protoModal .modal-header h3,
-        #cadModal .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            color: #f1f5f9;
-        }
-        #protoModal .modal-body,
-        #cadModal .modal-body {
-            flex: 1;
-            min-height: 0;
-            display: grid;
-            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
-            gap: 20px;
-            padding: 18px 22px;
-            align-items: stretch;
-        }
-        @media (max-width: 900px) {
-            #protoModal .modal-body,
-            #cadModal .modal-body {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-        }
-        .modal-left-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        #protoModal .viewer-wrapper,
-        #cadModal .viewer-wrapper {
-            position: relative;
-            width: 100%;
-            flex: 1;
-            min-height: 220px;
-            border-radius: 14px;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            background: radial-gradient(circle at 50% 45%, rgba(14, 165, 233, 0.12), rgba(7, 13, 25, 0.96) 72%);
-            overflow: hidden;
-        }
-        #slicer-canvas,
-        #cad-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        .hud-top-stack {
-            position: absolute;
-            top: 12px;
-            left: 14px;
-            right: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .hud-left-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 7px;
-        }
-        .hud-right-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: #bae6fd;
-            text-align: right;
-            line-height: 1.35;
-        }
-        .sim-inner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(14, 165, 233, 0.16);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.42);
-            padding: 4px 12px;
+            padding: 4px 9px;
             border-radius: 999px;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            color: #7dd3fc;
         }
-        .hud-sub-line {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #bae6fd;
-            line-height: 1.35;
-        }
-        .slicer-bottom-bar {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .slicer-embedded-slider {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(148, 163, 184, 0.24);
-            border-radius: 10px;
-            padding: 7px 12px;
-            backdrop-filter: blur(8px);
-        }
-        .slicer-embedded-slider-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 4px;
-        }
-        .slicer-embedded-slider-top span {
-            color: #38bdf8;
-            font-family: 'Consolas', 'Monaco', monospace;
-        }
-        .slicer-embedded-slider input[type="range"] {
-            width: 100%;
-            margin: 0;
-            cursor: pointer;
-            accent-color: #38bdf8;
-        }
-        #protoModal .speed-pill-btn {
-            position: static;
-            height: 42px;
-            min-width: 46px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            background: rgba(15, 23, 42, 0.9);
-            color: #e2e8f0;
-            font-size: 12.5px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-        #protoModal .speed-pill-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(14, 165, 233, 0.14);
-        }
-        #cadModal .speed-pill-btn {
-            position: absolute;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-        }
-        .left-selectors-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .left-single-selector {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        @media (max-width: 640px) {
-            .left-selectors-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .modal-left-col .control-group {
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .modal-left-col .control-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        .modal-left-col .control-group select {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.26);
-            background: #111b2e;
-            color: #f8fafc;
-            font-size: 13px;
-            outline: none;
-        }
-        .modal-left-col .control-group select:focus {
-            border-color: #38bdf8;
-        }
-        #protoModal .controls-panel,
-        #cadModal .controls-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        .single-detail-card {
-            background: rgba(15, 23, 42, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 14px;
-            padding: 15px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-        .detail-block-tag {
-            display: inline-block;
-            font-size: 10.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-        .single-detail-title {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #38bdf8;
-            line-height: 1.3;
-        }
-        .single-detail-text {
-            margin: 4px 0 0 0;
-            font-size: 12.5px;
-            line-height: 1.48;
-            color: #cbd5e1;
-        }
-        .single-detail-divider {
-            border: 0;
-            border-top: 1px solid rgba(148, 163, 184, 0.16);
-            margin: 0;
-        }
-        .mat-specs-box {
-            margin-top: 9px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.18);
-            font-size: 12px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .mat-specs-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            line-height: 1.35;
-        }
-        .mat-specs-row strong {
-            color: #e2e8f0;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .mat-specs-row span {
-            text-align: right;
-            color: #cbd5e1;
-        }
-        #cadModal .checkbox-row {
-            margin-bottom: 0;
-            padding: 9px 12px;
-        }
-        #cadModal .specs-pills {
-            margin-top: 8px;
-            gap: 6px;
-        }
-        #richiediProtoBtn.btn-primary,
-        #richiediCadBtn.btn-primary {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 11px;
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1.25;
-            flex-shrink: 0;
-        }
-        body.light-mode #protoModal .modal-box,
-        body.light-mode #cadModal .modal-box {
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
-        body.light-mode #protoModal .modal-header,
-        body.light-mode #cadModal .modal-header {
-            background: #f8fafc;
-            border-bottom-color: #e2e8f0;
-        }
-        body.light-mode #protoModal .modal-header h3,
-        body.light-mode #cadModal .modal-header h3 {
-            color: #0f172a;
-        }
-        body.light-mode #protoModal .viewer-wrapper,
-        body.light-mode #cadModal .viewer-wrapper {
-            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
-            border-color: #cbd5e1;
-        }
-        body.light-mode .hud-right-stack,
-        body.light-mode .hud-sub-line {
+        body.light-mode #cadModal .spec-pill {
+            background: rgba(2, 132, 199, 0.1);
+            border-color: rgba(2, 132, 199, 0.25);
             color: #0369a1;
-        }
-        body.light-mode .slicer-embedded-slider,
-        body.light-mode #protoModal .speed-pill-btn {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-        body.light-mode .slicer-embedded-slider-top {
-            color: #0f172a;
-        }
-        body.light-mode .modal-left-col .control-group select {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        body.light-mode .single-detail-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        body.light-mode .single-detail-title {
-            color: #0369a1;
-        }
-        body.light-mode .single-detail-text,
-        body.light-mode .mat-specs-row span {
-            color: #334155;
-        }
-        body.light-mode .mat-specs-row strong {
-            color: #0f172a;
-        }
-    </style>"""
-
-assert old_head_style in src, "old_head_style not found"
-src = src.replace(old_head_style, new_head_style, 1)
-
-old_modals = """    <!-- BOX 1: PROTOTIPAZIONE 3D -->
-    <div id="protoModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Prototipazione componenti in 3D</h3>
-                <button id="closeModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="proto-left-col">
-                    <div id="viewerWrapper" class="viewer-wrapper">
-                        <canvas id="slicer-canvas"></canvas>
-                        <div class="slicer-hud-stack">
-                            <div class="slicer-hud-badge-row">
-                                <span class="slicer-inner-badge">Simulatore Slicer</span>
-                            </div>
-                            <div class="slicer-hud-meta">
-                                <span id="hud-layer">LAYER: 0 / 42</span>
-                                <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
-                            </div>
-                        </div>
-
-                        <div class="slicer-bottom-bar">
-                            <div class="slicer-embedded-slider" id="embeddedSliderBox">
-                                <div class="slicer-embedded-slider-top">
-                                    <label for="layersSlider" style="margin:0; cursor:pointer;">Densità Layer Lines</label>
-                                    <span id="layersValue">42 strati (0.20mm)</span>
-                                </div>
-                                <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
-                            </div>
-                            <button id="protoSpeedBtn" class="speed-pill-btn" title="Cambia velocità animazione">1x</button>
-                        </div>
-                    </div>
-
-                    <div class="left-selectors-grid">
-                        <div class="control-group">
-                            <label for="modelSelect">Tipo di Oggetto 3D</label>
-                            <select id="modelSelect">
-                                <option value="gear">Ingranaggio Meccanico (12 denti)</option>
-                                <option value="vase">Vaso Parametrico Ritorto</option>
-                                <option value="helix">Elica Aerodinamica</option>
-                                <option value="bracket">Cilindro Scanalato Industriale</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="materialSelect">Materiale di Stampa</label>
-                            <select id="materialSelect">
-                                <option value="pla">PLA+ (Acido Polilattico Rinforzato)</option>
-                                <option value="petg">PETG (Polietilene Tereftalato Glicole)</option>
-                                <option value="asa">ASA (Resistente UV e Intemperie)</option>
-                                <option value="pacf">PA12-CF (Nylon Caricato Fibra di Carbonio)</option>
-                                <option value="resin">Resina Engineering Tough (MSLA)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div id="activeSelectionDescription" class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Geometria Selezionata</span>
-                            <h4 id="desc-target-title" class="single-detail-title">Ingranaggio Meccanico (12 denti)</h4>
-                            <p id="desc-target-body" class="single-detail-text">
-                                Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.
-                            </p>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Materiale di Stampa</span>
-                            <h4 id="desc-mat-title" class="single-detail-title">PLA+ (Acido Polilattico Rinforzato)</h4>
-                            <p id="desc-mat-body" class="single-detail-text">
-                                Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.
-                            </p>
-                            <div class="mat-specs-box">
-                                <div class="mat-specs-row"><strong>Estrusione / Processo:</strong> <span id="mat-temp">205°C – 220°C</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Meccanica:</strong> <span id="mat-strength">Media-Alta (60 MPa)</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Termica:</strong> <span id="mat-heat">Fino a 55°C</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="richiediProtoBtn" class="btn-primary">
-                        Richiedi Preventivo con questo Materiale
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- BOX 2: PROGETTAZIONE CAD 2D -->
-    <div id="cadModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>
-                    <span class="badge" style="margin:0;">Tavola Tecnica 2D</span>
-                    Progettazione CAD & Architettura 2D
-                </h3>
-                <button id="closeCadModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div>
-                    <div id="cadViewerWrapper" class="viewer-wrapper">
-                        <canvas id="cad-canvas"></canvas>
-                        <div class="viewer-hud">
-                            <span id="cad-hud-coords">X: 0.00  Y: 0.00 m</span>
-                            <span id="cad-hud-scale">SCALA 1:50 • ARCH-CAD</span>
-                        </div>
-                        <button id="cadSpeedBtn" class="speed-pill-btn" title="Cambia velocità tracciamento">1x</button>
-                    </div>
-
-                    <div class="service-description" style="margin-top: 16px;">
-                        <strong>Tavole architettoniche e disegni tecnici pronti per il cantiere o l'officina</strong>
-                        Realizziamo planimetrie quotate, prospetti di facciate, sezioni strutturali e file vettoriali DXF/DWG per taglio laser e modellazione 3D.
-                        <div class="specs-pills">
-                            <span class="spec-pill">Formati DWG / DXF / PDF</span>
-                            <span class="spec-pill">Prospetti & Planimetrie</span>
-                            <span class="spec-pill">Quotatura Tecnica</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div class="control-group">
-                        <label for="cadModelSelect">Elaborato CAD 2D</label>
-                        <select id="cadModelSelect">
-                            <option value="facade">Prospetto Facciata Abitazione</option>
-                            <option value="floorplan">Piantina Architettonica (Bilocale)</option>
-                            <option value="section2d">Sezione Strutturale con Scala</option>
-                            <option value="gear2d">Ingranaggio Meccanico Quotato</option>
-                        </select>
-                    </div>
-
-                    <label class="checkbox-row" for="cadDimsToggle">
-                        <span>Mostra Quote e Linee di Costruzione</span>
-                        <input type="checkbox" id="cadDimsToggle" checked>
-                    </label>
-
-                    <div class="service-description">
-                        <strong>Dalla tavola 2D al modello tridimensionale</strong>
-                        Partendo da un rilievo, uno schizzo su carta o un'idea progettuale, costruiamo elaborati 2D puliti e organizzati per layer, pronti per essere estrusi in 3D o consegnati in formato esecutivo.
-                    </div>
-
-                    <button id="richiediCadBtn" class="btn-primary" style="margin-top: auto;">
-                        Richiedi Consulenza CAD
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>"""
-
-new_modals = """    <!-- BOX 1: PROTOTIPAZIONE 3D -->
-    <div id="protoModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Prototipazione componenti in 3D</h3>
-                <button id="closeModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="modal-left-col">
-                    <div id="viewerWrapper" class="viewer-wrapper">
-                        <canvas id="slicer-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Simulatore Slicer</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="hud-layer">LAYER: 0 / 42</span>
-                                <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
-                            </div>
-                        </div>
-
-                        <div class="slicer-bottom-bar">
-                            <div class="slicer-embedded-slider" id="embeddedSliderBox">
-                                <div class="slicer-embedded-slider-top">
-                                    <label for="layersSlider" style="margin:0; cursor:pointer;">Densità Layer Lines</label>
-                                    <span id="layersValue">42 strati (0.20mm)</span>
-                                </div>
-                                <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
-                            </div>
-                            <button id="protoSpeedBtn" class="speed-pill-btn" title="Cambia velocità animazione">1x</button>
-                        </div>
-                    </div>
-
-                    <div class="left-selectors-grid">
-                        <div class="control-group">
-                            <label for="modelSelect">Tipo di Oggetto 3D</label>
-                            <select id="modelSelect">
-                                <option value="gear">Ingranaggio Meccanico (12 denti)</option>
-                                <option value="vase">Vaso Parametrico Ritorto</option>
-                                <option value="helix">Elica Aerodinamica</option>
-                                <option value="bracket">Cilindro Scanalato Industriale</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="materialSelect">Materiale di Stampa</label>
-                            <select id="materialSelect">
-                                <option value="pla">PLA+ (Acido Polilattico Rinforzato)</option>
-                                <option value="petg">PETG (Polietilene Tereftalato Glicole)</option>
-                                <option value="asa">ASA (Resistente UV e Intemperie)</option>
-                                <option value="pacf">PA12-CF (Nylon Caricato Fibra di Carbonio)</option>
-                                <option value="resin">Resina Engineering Tough (MSLA)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div id="activeSelectionDescription" class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Geometria Selezionata</span>
-                            <h4 id="desc-target-title" class="single-detail-title">Ingranaggio Meccanico (12 denti)</h4>
-                            <p id="desc-target-body" class="single-detail-text">
-                                Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.
-                            </p>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Materiale di Stampa</span>
-                            <h4 id="desc-mat-title" class="single-detail-title">PLA+ (Acido Polilattico Rinforzato)</h4>
-                            <p id="desc-mat-body" class="single-detail-text">
-                                Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.
-                            </p>
-                            <div class="mat-specs-box">
-                                <div class="mat-specs-row"><strong>Estrusione / Processo:</strong> <span id="mat-temp">205°C – 220°C</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Meccanica:</strong> <span id="mat-strength">Media-Alta (60 MPa)</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Termica:</strong> <span id="mat-heat">Fino a 55°C</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="richiediProtoBtn" class="btn-primary">
-                        Richiedi Preventivo con questo Materiale
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- BOX 2: PROGETTAZIONE CAD -->
-    <div id="cadModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Progettazione CAD</h3>
-                <button id="closeCadModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="modal-left-col">
-                    <div id="cadViewerWrapper" class="viewer-wrapper">
-                        <canvas id="cad-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Tavola Tecnica 2D</span>
-                                <span id="cad-hud-scale" class="hud-sub-line">SCALA 1:50 • ARCH-CAD</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="cad-hud-coords">X: 0.00  Y: 0.00 m</span>
-                            </div>
-                        </div>
-                        <button id="cadSpeedBtn" class="speed-pill-btn" title="Cambia velocità tracciamento">1x</button>
-                    </div>
-
-                    <div class="left-single-selector">
-                        <div class="control-group">
-                            <label for="cadModelSelect">Elaborato CAD 2D</label>
-                            <select id="cadModelSelect">
-                                <option value="facade">Prospetto Facciata Abitazione</option>
-                                <option value="floorplan">Piantina Architettonica (Bilocale)</option>
-                                <option value="section2d">Sezione Strutturale con Scala</option>
-                                <option value="gear2d">Ingranaggio Meccanico Quotato</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Elaborato Selezionato</span>
-                            <h4 id="cad-desc-title" class="single-detail-title">Prospetto Facciata Abitazione</h4>
-                            <p id="cad-desc-body" class="single-detail-text">
-                                Tavole architettoniche e disegni tecnici pronti per il cantiere o l'officina: planimetrie quotate, prospetti di facciate, sezioni strutturali e file vettoriali DXF/DWG per taglio laser e modellazione 3D.
-                            </p>
-                            <div class="specs-pills">
-                                <span class="spec-pill">Formati DWG / DXF / PDF</span>
-                                <span class="spec-pill">Prospetti & Planimetrie</span>
-                                <span class="spec-pill">Quotatura Tecnica</span>
-                            </div>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Workflow CAD</span>
-                            <h4 class="single-detail-title">Dalla tavola 2D al modello tridimensionale</h4>
-                            <p class="single-detail-text">
-                                Partendo da un rilievo, uno schizzo su carta o un'idea progettuale, costruiamo elaborati 2D puliti e organizzati per layer, pronti per essere estrusi in 3D o consegnati in formato esecutivo.
-                            </p>
-                        </div>
-                    </div>
-
-                    <label class="checkbox-row" for="cadDimsToggle">
-                        <span>Mostra Quote e Linee di Costruzione</span>
-                        <input type="checkbox" id="cadDimsToggle" checked>
-                    </label>
-
-                    <button id="richiediCadBtn" class="btn-primary">
-                        Richiedi Consulenza CAD
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>"""
-
-assert old_modals in src, "old_modals not found"
-src = src.replace(old_modals, new_modals, 1)
-
-old_cad_script_block = """            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-                hudScale.textContent = state.model === 'gear2d' ? 'SCALA 1:1 • ORTHO ON' : 'SCALA 1:50 • ARCH-CAD';
-                time = 0;
-            });"""
-
-new_cad_script_block = """            const cadDescTitle = document.getElementById('cad-desc-title');
-            const cadDescBody = document.getElementById('cad-desc-body');
-            const cadModelsDB = {
-                facade: {
-                    name: 'Prospetto Facciata Abitazione',
-                    desc: 'Restituzione grafica di prospetti esterni, aperture, falde e quote altimetriche in scala per pratiche edilizie, rilievi e studio dei materiali.'
-                },
-                floorplan: {
-                    name: 'Piantina Architettonica (Bilocale)',
-                    desc: 'Distribuzione interna quotata, murature, infissi e verso di apertura porte per ristrutturazioni, arredo e ottimizzazione degli spazi.'
-                },
-                section2d: {
-                    name: 'Sezione Strutturale con Scala',
-                    desc: 'Sezione verticale con quote di piano, solai e rampe di scala per verificare altezze libere, collegamenti verticali e dettagli costruttivi.'
-                },
-                gear2d: {
-                    name: 'Ingranaggio Meccanico Quotato',
-                    desc: 'Disegno tecnico in scala 1:1 con assi di simmetria, diametri nominali e fori di alleggerimento pronto per lavorazioni meccaniche o estrusione 3D.'
-                }
-            };
-
-            function aggiornaDescrizioneCad() {
-                const info = cadModelsDB[modelSelect.value] || cadModelsDB.facade;
-                if (cadDescTitle) cadDescTitle.textContent = info.name;
-                if (cadDescBody) cadDescBody.textContent = info.desc;
-            }
-
-            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-                hudScale.textContent = state.model === 'gear2d' ? 'SCALA 1:1 • ORTHO ON' : 'SCALA 1:50 • ARCH-CAD';
-                aggiornaDescrizioneCad();
-                time = 0;
-            });
-            aggiornaDescrizioneCad();"""
-
-assert old_cad_script_block in src, "old_cad_script_block not found"
-src = src.replace(old_cad_script_block, new_cad_script_block, 1)
-
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(src)
-with open("laos_engineering_site/index.html", "w", encoding="utf-8") as f:
-    f.write(src)
-
-print("Aggiornato con successo! Lunghezza:", len(src))
-
-
-```
-
-```text
-Aggiornato con successo! Lunghezza: 63300
-
-
-```
-
-```python
-with open("index.html", "r", encoding="utf-8") as f:
-    print(f.read())
-
-
-```
-
-```text
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laos Engineering / 3DParts - Servizi 2D & 3D</title>
-    <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* Armonizzazione layout modali 16:9 - Prototipazione 3D e Progettazione CAD */
-        #protoModal .modal-box,
-        #cadModal .modal-box {
-            width: min(96vw, 1280px);
-            aspect-ratio: 16 / 9;
-            max-height: 92vh;
-            border-radius: 16px;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: #0b1220;
-            box-shadow: 0 24px 64px rgba(2, 6, 23, 0.72);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        @media (max-width: 1024px) {
-            #protoModal .modal-box,
-            #cadModal .modal-box {
-                width: 95%;
-                aspect-ratio: auto;
-                max-height: 92vh;
-                overflow-y: auto;
-            }
-        }
-        #protoModal .modal-header,
-        #cadModal .modal-header {
-            padding: 14px 22px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        #protoModal .modal-header h3,
-        #cadModal .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            color: #f1f5f9;
-        }
-        #protoModal .modal-body,
-        #cadModal .modal-body {
-            flex: 1;
-            min-height: 0;
-            display: grid;
-            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
-            gap: 20px;
-            padding: 18px 22px;
-            align-items: stretch;
-        }
-        @media (max-width: 900px) {
-            #protoModal .modal-body,
-            #cadModal .modal-body {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-        }
-        .modal-left-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        #protoModal .viewer-wrapper,
-        #cadModal .viewer-wrapper {
-            position: relative;
-            width: 100%;
-            flex: 1;
-            min-height: 220px;
-            border-radius: 14px;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            background: radial-gradient(circle at 50% 45%, rgba(14, 165, 233, 0.12), rgba(7, 13, 25, 0.96) 72%);
-            overflow: hidden;
-        }
-        #slicer-canvas,
-        #cad-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        .hud-top-stack {
-            position: absolute;
-            top: 12px;
-            left: 14px;
-            right: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .hud-left-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 7px;
-        }
-        .hud-right-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: #bae6fd;
-            text-align: right;
-            line-height: 1.35;
-        }
-        .sim-inner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(14, 165, 233, 0.16);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.42);
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .hud-sub-line {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #bae6fd;
-            line-height: 1.35;
-        }
-        .slicer-bottom-bar {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .slicer-embedded-slider {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(148, 163, 184, 0.24);
-            border-radius: 10px;
-            padding: 7px 12px;
-            backdrop-filter: blur(8px);
-        }
-        .slicer-embedded-slider-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 4px;
-        }
-        .slicer-embedded-slider-top span {
-            color: #38bdf8;
-            font-family: 'Consolas', 'Monaco', monospace;
-        }
-        .slicer-embedded-slider input[type="range"] {
-            width: 100%;
-            margin: 0;
-            cursor: pointer;
-            accent-color: #38bdf8;
-        }
-        #protoModal .speed-pill-btn {
-            position: static;
-            height: 42px;
-            min-width: 46px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            background: rgba(15, 23, 42, 0.9);
-            color: #e2e8f0;
-            font-size: 12.5px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-        #protoModal .speed-pill-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(14, 165, 233, 0.14);
-        }
-        #cadModal .speed-pill-btn {
-            position: absolute;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-        }
-        .left-selectors-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .left-single-selector {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        @media (max-width: 640px) {
-            .left-selectors-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .modal-left-col .control-group {
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .modal-left-col .control-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        .modal-left-col .control-group select {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.26);
-            background: #111b2e;
-            color: #f8fafc;
-            font-size: 13px;
-            outline: none;
-        }
-        .modal-left-col .control-group select:focus {
-            border-color: #38bdf8;
-        }
-        #protoModal .controls-panel,
-        #cadModal .controls-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        .single-detail-card {
-            background: rgba(15, 23, 42, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 14px;
-            padding: 15px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-        .detail-block-tag {
-            display: inline-block;
-            font-size: 10.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-        .single-detail-title {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #38bdf8;
-            line-height: 1.3;
-        }
-        .single-detail-text {
-            margin: 4px 0 0 0;
-            font-size: 12.5px;
-            line-height: 1.48;
-            color: #cbd5e1;
-        }
-        .single-detail-divider {
-            border: 0;
-            border-top: 1px solid rgba(148, 163, 184, 0.16);
-            margin: 0;
-        }
-        .mat-specs-box {
-            margin-top: 9px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.18);
-            font-size: 12px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .mat-specs-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            line-height: 1.35;
-        }
-        .mat-specs-row strong {
-            color: #e2e8f0;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .mat-specs-row span {
-            text-align: right;
-            color: #cbd5e1;
-        }
-        #cadModal .checkbox-row {
-            margin-bottom: 0;
-            padding: 9px 12px;
-        }
-        #cadModal .specs-pills {
-            margin-top: 8px;
-            gap: 6px;
-        }
-        #richiediProtoBtn.btn-primary,
-        #richiediCadBtn.btn-primary {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 11px;
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1.25;
-            flex-shrink: 0;
-        }
-        body.light-mode #protoModal .modal-box,
-        body.light-mode #cadModal .modal-box {
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
-        body.light-mode #protoModal .modal-header,
-        body.light-mode #cadModal .modal-header {
-            background: #f8fafc;
-            border-bottom-color: #e2e8f0;
-        }
-        body.light-mode #protoModal .modal-header h3,
-        body.light-mode #cadModal .modal-header h3 {
-            color: #0f172a;
-        }
-        body.light-mode #protoModal .viewer-wrapper,
-        body.light-mode #cadModal .viewer-wrapper {
-            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
-            border-color: #cbd5e1;
-        }
-        body.light-mode .hud-right-stack,
-        body.light-mode .hud-sub-line {
-            color: #0369a1;
-        }
-        body.light-mode .slicer-embedded-slider,
-        body.light-mode #protoModal .speed-pill-btn {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-        body.light-mode .slicer-embedded-slider-top {
-            color: #0f172a;
-        }
-        body.light-mode .modal-left-col .control-group select {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        body.light-mode .single-detail-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        body.light-mode .single-detail-title {
-            color: #0369a1;
-        }
-        body.light-mode .single-detail-text,
-        body.light-mode .mat-specs-row span {
-            color: #334155;
-        }
-        body.light-mode .mat-specs-row strong {
-            color: #0f172a;
         }
     </style>
 
@@ -1708,11 +632,11 @@ with open("index.html", "r", encoding="utf-8") as f:
                             <span class="detail-block-tag">Elaborato Selezionato</span>
                             <h4 id="cad-desc-title" class="single-detail-title">Prospetto Facciata Abitazione</h4>
                             <p id="cad-desc-body" class="single-detail-text">
-                                Tavole architettoniche e disegni tecnici pronti per il cantiere o l'officina: planimetrie quotate, prospetti di facciate, sezioni strutturali e file vettoriali DXF/DWG per taglio laser e modellazione 3D.
+                                Restituzione grafica di prospetti esterni, aperture, falde e quote altimetriche in scala per pratiche edilizie, rilievi e studio dei materiali.
                             </p>
                             <div class="specs-pills">
                                 <span class="spec-pill">Formati DWG / DXF / PDF</span>
-                                <span class="spec-pill">Prospetti & Planimetrie</span>
+                                <span class="spec-pill">Prospetti &amp; Planimetrie</span>
                                 <span class="spec-pill">Quotatura Tecnica</span>
                             </div>
                         </div>
@@ -1723,7 +647,7 @@ with open("index.html", "r", encoding="utf-8") as f:
                             <span class="detail-block-tag">Workflow CAD</span>
                             <h4 class="single-detail-title">Dalla tavola 2D al modello tridimensionale</h4>
                             <p class="single-detail-text">
-                                Partendo da un rilievo, uno schizzo su carta o un'idea progettuale, costruiamo elaborati 2D puliti e organizzati per layer, pronti per essere estrusi in 3D o consegnati in formato esecutivo.
+                                Partendo da un rilievo, uno schizzo o un'idea progettuale, realizziamo elaborati 2D puliti e organizzati per layer, pronti per il 3D o l'esecutivo.
                             </p>
                         </div>
                     </div>
@@ -2373,1284 +1297,3 @@ with open("index.html", "r", encoding="utf-8") as f:
     </script>
 </body>
 </html>
-
-
-
-```
-
-```html
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laos Engineering / 3DParts - Servizi 2D & 3D</title>
-    <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* Armonizzazione layout modali 16:9 - Prototipazione 3D e Progettazione CAD */
-        #protoModal .modal-box,
-        #cadModal .modal-box {
-            width: min(96vw, 1280px);
-            aspect-ratio: 16 / 9;
-            max-height: 92vh;
-            border-radius: 16px;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: #0b1220;
-            box-shadow: 0 24px 64px rgba(2, 6, 23, 0.72);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        @media (max-width: 1024px) {
-            #protoModal .modal-box,
-            #cadModal .modal-box {
-                width: 95%;
-                aspect-ratio: auto;
-                max-height: 92vh;
-                overflow-y: auto;
-            }
-        }
-        #protoModal .modal-header,
-        #cadModal .modal-header {
-            padding: 14px 22px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        #protoModal .modal-header h3,
-        #cadModal .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            color: #f1f5f9;
-        }
-        #protoModal .modal-body,
-        #cadModal .modal-body {
-            flex: 1;
-            min-height: 0;
-            display: grid;
-            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
-            gap: 20px;
-            padding: 18px 22px;
-            align-items: stretch;
-        }
-        @media (max-width: 900px) {
-            #protoModal .modal-body,
-            #cadModal .modal-body {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-        }
-        .modal-left-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        #protoModal .viewer-wrapper,
-        #cadModal .viewer-wrapper {
-            position: relative;
-            width: 100%;
-            flex: 1;
-            min-height: 220px;
-            border-radius: 14px;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            background: radial-gradient(circle at 50% 45%, rgba(14, 165, 233, 0.12), rgba(7, 13, 25, 0.96) 72%);
-            overflow: hidden;
-        }
-        #slicer-canvas,
-        #cad-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        .hud-top-stack {
-            position: absolute;
-            top: 12px;
-            left: 14px;
-            right: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .hud-left-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 7px;
-        }
-        .hud-right-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: #bae6fd;
-            text-align: right;
-            line-height: 1.35;
-        }
-        .sim-inner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(14, 165, 233, 0.16);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.42);
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .hud-sub-line {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #bae6fd;
-            line-height: 1.35;
-        }
-        .slicer-bottom-bar {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .slicer-embedded-slider {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(148, 163, 184, 0.24);
-            border-radius: 10px;
-            padding: 7px 12px;
-            backdrop-filter: blur(8px);
-        }
-        .slicer-embedded-slider-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 4px;
-        }
-        .slicer-embedded-slider-top span {
-            color: #38bdf8;
-            font-family: 'Consolas', 'Monaco', monospace;
-        }
-        .slicer-embedded-slider input[type="range"] {
-            width: 100%;
-            margin: 0;
-            cursor: pointer;
-            accent-color: #38bdf8;
-        }
-        #protoModal .speed-pill-btn {
-            position: static;
-            height: 42px;
-            min-width: 46px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            background: rgba(15, 23, 42, 0.9);
-            color: #e2e8f0;
-            font-size: 12.5px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-        #protoModal .speed-pill-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(14, 165, 233, 0.14);
-        }
-        #cadModal .speed-pill-btn {
-            position: absolute;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-        }
-        .left-selectors-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .left-single-selector {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        @media (max-width: 640px) {
-            .left-selectors-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .modal-left-col .control-group {
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .modal-left-col .control-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        .modal-left-col .control-group select {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.26);
-            background: #111b2e;
-            color: #f8fafc;
-            font-size: 13px;
-            outline: none;
-        }
-        .modal-left-col .control-group select:focus {
-            border-color: #38bdf8;
-        }
-        #protoModal .controls-panel,
-        #cadModal .controls-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        .single-detail-card {
-            background: rgba(15, 23, 42, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 14px;
-            padding: 15px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-        .detail-block-tag {
-            display: inline-block;
-            font-size: 10.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-        .single-detail-title {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #38bdf8;
-            line-height: 1.3;
-        }
-        .single-detail-text {
-            margin: 4px 0 0 0;
-            font-size: 12.5px;
-            line-height: 1.48;
-            color: #cbd5e1;
-        }
-        .single-detail-divider {
-            border: 0;
-            border-top: 1px solid rgba(148, 163, 184, 0.16);
-            margin: 0;
-        }
-        .mat-specs-box {
-            margin-top: 9px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.18);
-            font-size: 12px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .mat-specs-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            line-height: 1.35;
-        }
-        .mat-specs-row strong {
-            color: #e2e8f0;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .mat-specs-row span {
-            text-align: right;
-            color: #cbd5e1;
-        }
-        #cadModal .checkbox-row {
-            margin-bottom: 0;
-            padding: 9px 12px;
-        }
-        #cadModal .specs-pills {
-            margin-top: 8px;
-            gap: 6px;
-        }
-        #richiediProtoBtn.btn-primary,
-        #richiediCadBtn.btn-primary {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 11px;
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1.25;
-            flex-shrink: 0;
-        }
-        body.light-mode #protoModal .modal-box,
-        body.light-mode #cadModal .modal-box {
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
-        body.light-mode #protoModal .modal-header,
-        body.light-mode #cadModal .modal-header {
-            background: #f8fafc;
-            border-bottom-color: #e2e8f0;
-        }
-        body.light-mode #protoModal .modal-header h3,
-        body.light-mode #cadModal .modal-header h3 {
-            color: #0f172a;
-        }
-        body.light-mode #protoModal .viewer-wrapper,
-        body.light-mode #cadModal .viewer-wrapper {
-            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
-            border-color: #cbd5e1;
-        }
-        body.light-mode .hud-right-stack,
-        body.light-mode .hud-sub-line {
-            color: #0369a1;
-        }
-        body.light-mode .slicer-embedded-slider,
-        body.light-mode #protoModal .speed-pill-btn {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-        body.light-mode .slicer-embedded-slider-top {
-            color: #0f172a;
-        }
-        body.light-mode .modal-left-col .control-group select {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        body.light-mode .single-detail-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        body.light-mode .single-detail-title {
-            color: #0369a1;
-        }
-        body.light-mode .single-detail-text,
-        body.light-mode .mat-specs-row span {
-            color: #334155;
-        }
-        body.light-mode .mat-specs-row strong {
-            color: #0f172a;
-        }
-    </style>
-
-</head>
-<body>
-
-    <header>
-        <div class="header-content">
-            <div>
-                <h1 style="margin: 0; font-size: 23px; letter-spacing: 0.5px;">Laos Engineering / 3DParts</h1>
-                <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13.5px;">Progettazione CAD 2D & Stampe 3D Personalizzate</p>
-            </div>
-            <div class="header-actions">
-                <button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
-                <a href="admin.html" class="admin-btn">Area Admin</a>
-            </div>
-        </div>
-
-        <nav class="nav-tabs" aria-label="Pagine del sito">
-            <a href="index.html" class="tab-link active">Servizi 2D & 3D</a>
-            <a href="bacheca.html" class="tab-link">Bacheca Pezzi Realizzati</a>
-            <a href="macro.html" class="tab-link">Vetrina Foto Macro</a>
-        </nav>
-    </header>
-
-    <main>
-        <section>
-            <h2>Servizi di Progettazione 2D e Stampa 3D</h2>
-            <p class="section-subtitle">Seleziona un servizio per esplorare i simulatori interattivi, i materiali e le specifiche tecniche.</p>
-            <div id="catalogo-container" class="griglia-prodotti">
-                <p style="color: #94a3b8;">Caricamento catalogo in corso...</p>
-            </div>
-        </section>
-
-        <section id="sezione-contatti" class="commission-section">
-            <h2>Commissiona Progetto</h2>
-            <div class="commission-wrapper">
-                <div class="commission-info">
-                    <h3>Hai un'idea o un file da realizzare?</h3>
-                    <p>Inviaci i dettagli del tuo componente meccanico, prototipo o tavola architettonica. Analizzeremo fattibilità, materiali e tolleranze per inviarti un preventivo su misura.</p>
-                    <ul class="commission-steps">
-                        <li><span class="step-num">1</span> Descrivi il progetto o indica le dimensioni</li>
-                        <li><span class="step-num">2</span> Ricevi consulenza su materiali e finiture</li>
-                        <li><span class="step-num">3</span> Produzione rapida e spedizione tracciata</li>
-                    </ul>
-                </div>
-
-                <form id="formContatto">
-                    <input type="text" id="nome" placeholder="Il tuo Nome o Azienda" required>
-                    <input type="email" id="email" placeholder="La tua Email" required>
-                    <textarea id="messaggio" rows="4" placeholder="Descrivi il tuo progetto, il materiale desiderato o le misure indicative..." required></textarea>
-                    <button type="submit">Invia Richiesta</button>
-                    <p id="statoInvio"></p>
-                </form>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>Laos Engineering / 3DParts</h4>
-                <p>Servizi professionali di progettazione CAD 2D/3D, prototipazione rapida e produzione di componenti tecnici su misura.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Contatti Diretti</h4>
-                <a href="mailto:info@laosengineering.it">Email: info@laosengineering.it</a>
-                <a href="tel:+390964000000">Tel / WhatsApp: +39 0964 000 000</a>
-                <p>Sede: Siderno (RC), Calabria - Italia</p>
-            </div>
-            <div class="footer-col">
-                <h4>Orari Laboratorio</h4>
-                <p>Lun – Ven: 09:00 – 13:00 / 15:00 – 19:00</p>
-                <p>Sabato: Su appuntamento</p>
-                <p>Spedizioni in tutta Italia in 24/48h</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>&copy; 2026 Laos Engineering / 3DParts. Tutti i diritti riservati.</span>
-            <span>Progettazione CAD & Stampa 3D</span>
-        </div>
-    </footer>
-
-    <!-- BOX 1: PROTOTIPAZIONE 3D -->
-    <div id="protoModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Prototipazione componenti in 3D</h3>
-                <button id="closeModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="modal-left-col">
-                    <div id="viewerWrapper" class="viewer-wrapper">
-                        <canvas id="slicer-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Simulatore Slicer</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="hud-layer">LAYER: 0 / 42</span>
-                                <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
-                            </div>
-                        </div>
-
-                        <div class="slicer-bottom-bar">
-                            <div class="slicer-embedded-slider" id="embeddedSliderBox">
-                                <div class="slicer-embedded-slider-top">
-                                    <label for="layersSlider" style="margin:0; cursor:pointer;">Densità Layer Lines</label>
-                                    <span id="layersValue">42 strati (0.20mm)</span>
-                                </div>
-                                <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
-                            </div>
-                            <button id="protoSpeedBtn" class="speed-pill-btn" title="Cambia velocità animazione">1x</button>
-                        </div>
-                    </div>
-
-                    <div class="left-selectors-grid">
-                        <div class="control-group">
-                            <label for="modelSelect">Tipo di Oggetto 3D</label>
-                            <select id="modelSelect">
-                                <option value="gear">Ingranaggio Meccanico (12 denti)</option>
-                                <option value="vase">Vaso Parametrico Ritorto</option>
-                                <option value="helix">Elica Aerodinamica</option>
-                                <option value="bracket">Cilindro Scanalato Industriale</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="materialSelect">Materiale di Stampa</label>
-                            <select id="materialSelect">
-                                <option value="pla">PLA+ (Acido Polilattico Rinforzato)</option>
-                                <option value="petg">PETG (Polietilene Tereftalato Glicole)</option>
-                                <option value="asa">ASA (Resistente UV e Intemperie)</option>
-                                <option value="pacf">PA12-CF (Nylon Caricato Fibra di Carbonio)</option>
-                                <option value="resin">Resina Engineering Tough (MSLA)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div id="activeSelectionDescription" class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Geometria Selezionata</span>
-                            <h4 id="desc-target-title" class="single-detail-title">Ingranaggio Meccanico (12 denti)</h4>
-                            <p id="desc-target-body" class="single-detail-text">
-                                Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.
-                            </p>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Materiale di Stampa</span>
-                            <h4 id="desc-mat-title" class="single-detail-title">PLA+ (Acido Polilattico Rinforzato)</h4>
-                            <p id="desc-mat-body" class="single-detail-text">
-                                Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.
-                            </p>
-                            <div class="mat-specs-box">
-                                <div class="mat-specs-row"><strong>Estrusione / Processo:</strong> <span id="mat-temp">205°C – 220°C</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Meccanica:</strong> <span id="mat-strength">Media-Alta (60 MPa)</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Termica:</strong> <span id="mat-heat">Fino a 55°C</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="richiediProtoBtn" class="btn-primary">
-                        Richiedi Preventivo con questo Materiale
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- BOX 2: PROGETTAZIONE CAD -->
-    <div id="cadModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Progettazione CAD</h3>
-                <button id="closeCadModalBtn" class="close-btn" title="Chiudi">&times;</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="modal-left-col">
-                    <div id="cadViewerWrapper" class="viewer-wrapper">
-                        <canvas id="cad-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Tavola Tecnica 2D</span>
-                                <span id="cad-hud-scale" class="hud-sub-line">SCALA 1:50 • ARCH-CAD</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="cad-hud-coords">X: 0.00  Y: 0.00 m</span>
-                            </div>
-                        </div>
-                        <button id="cadSpeedBtn" class="speed-pill-btn" title="Cambia velocità tracciamento">1x</button>
-                    </div>
-
-                    <div class="left-single-selector">
-                        <div class="control-group">
-                            <label for="cadModelSelect">Elaborato CAD 2D</label>
-                            <select id="cadModelSelect">
-                                <option value="facade">Prospetto Facciata Abitazione</option>
-                                <option value="floorplan">Piantina Architettonica (Bilocale)</option>
-                                <option value="section2d">Sezione Strutturale con Scala</option>
-                                <option value="gear2d">Ingranaggio Meccanico Quotato</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="controls-panel">
-                    <div class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Elaborato Selezionato</span>
-                            <h4 id="cad-desc-title" class="single-detail-title">Prospetto Facciata Abitazione</h4>
-                            <p id="cad-desc-body" class="single-detail-text">
-                                Tavole architettoniche e disegni tecnici pronti per il cantiere o l'officina: planimetrie quotate, prospetti di facciate, sezioni strutturali e file vettoriali DXF/DWG per taglio laser e modellazione 3D.
-                            </p>
-                            <div class="specs-pills">
-                                <span class="spec-pill">Formati DWG / DXF / PDF</span>
-                                <span class="spec-pill">Prospetti & Planimetrie</span>
-                                <span class="spec-pill">Quotatura Tecnica</span>
-                            </div>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Workflow CAD</span>
-                            <h4 class="single-detail-title">Dalla tavola 2D al modello tridimensionale</h4>
-                            <p class="single-detail-text">
-                                Partendo da un rilievo, uno schizzo su carta o un'idea progettuale, costruiamo elaborati 2D puliti e organizzati per layer, pronti per essere estrusi in 3D o consegnati in formato esecutivo.
-                            </p>
-                        </div>
-                    </div>
-
-                    <label class="checkbox-row" for="cadDimsToggle">
-                        <span>Mostra Quote e Linee di Costruzione</span>
-                        <input type="checkbox" id="cadDimsToggle" checked>
-                    </label>
-
-                    <button id="richiediCadBtn" class="btn-primary">
-                        Richiedi Consulenza CAD
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="theme.js"></script>
-
-    <!-- Script Simulatore 3D -->
-    <script>
-        (function() {
-            const modal = document.getElementById('protoModal');
-            const closeBtn = document.getElementById('closeModalBtn');
-            const viewerWrapper = document.getElementById('viewerWrapper');
-            const embeddedSliderBox = document.getElementById('embeddedSliderBox');
-            const canvas = document.getElementById('slicer-canvas');
-            const ctx = canvas.getContext('2d');
-
-            const modelSelect = document.getElementById('modelSelect');
-            const materialSelect = document.getElementById('materialSelect');
-            const protoSpeedBtn = document.getElementById('protoSpeedBtn');
-            const layersSlider = document.getElementById('layersSlider');
-            const layersValue = document.getElementById('layersValue');
-            const hudLayer = document.getElementById('hud-layer');
-            const hudRes = document.getElementById('hud-res');
-            const richiediProtoBtn = document.getElementById('richiediProtoBtn');
-
-            const descTargetTitle = document.getElementById('desc-target-title');
-            const descTargetBody = document.getElementById('desc-target-body');
-            const descMatTitle = document.getElementById('desc-mat-title');
-            const descMatBody = document.getElementById('desc-mat-body');
-
-            const modelsDB = {
-                gear: {
-                    name: 'Ingranaggio Meccanico (12 denti)',
-                    desc: 'Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.'
-                },
-                vase: {
-                    name: 'Vaso Parametrico Ritorto',
-                    desc: 'Geometria elicoidale a parete continua ideale per testare continuità di estrusione, finitura superficiale e andamento dei layer.'
-                },
-                helix: {
-                    name: 'Elica Aerodinamica',
-                    desc: 'Profilo curvo a passo variabile studiato per valutare torsione geometrica, spessori sottili e bilanciamento degli strati.'
-                },
-                bracket: {
-                    name: 'Cilindro Scanalato Industriale',
-                    desc: 'Componente cilindrico con base flangiata e scanalature radiali pensato per calettamenti, boccole e verifiche di tolleranza.'
-                }
-            };
-
-            const materialsDB = {
-                pla: { name: 'PLA+ (Acido Polilattico Rinforzato)', temp: '205°C – 220°C', strength: 'Media-Alta (60 MPa)', heat: 'Fino a 55°C', desc: 'Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.' },
-                petg: { name: 'PETG (Polietilene Tereftalato Glicole)', temp: '235°C – 250°C', strength: 'Alta + Flessibilità (53 MPa)', heat: 'Fino a 75°C', desc: 'Ottimo equilibrio tra robustezza meccanica, resistenza chimica e leggerezza. Perfetto per staffe, clip e parti funzionali.' },
-                asa: { name: 'ASA (Resistente UV e Intemperie)', temp: '250°C – 265°C', strength: 'Alta resistenza urti (55 MPa)', heat: 'Fino a 95°C', desc: 'Polimero tecnico resistente ai raggi UV e agli agenti atmosferici. Consigliato per componenti automotive ed esterni.' },
-                pacf: { name: 'PA12-CF (Nylon Caricato Fibra di Carbonio)', temp: '280°C – 300°C', strength: 'Estrema / Rigida (85 MPa)', heat: 'Fino a 130°C', desc: 'Poliammide rinforzata con fibra di carbonio: sostituisce leghe leggere in ingranaggi, supporti strutturali e dime industriali.' },
-                resin: { name: 'Resina Engineering Tough (MSLA)', temp: 'Polimerizzazione UV 405nm', strength: 'Alta definizione (65 MPa)', heat: 'Fino a 65°C', desc: 'Superficie liscia simile allo stampaggio a iniezione con layer da 0.05 mm. Ideale per micro-meccanica e dettagli complessi.' }
-            };
-
-            function aggiornaDescrizioneModello() {
-                const mod = modelsDB[modelSelect.value] || modelsDB.gear;
-                descTargetTitle.textContent = mod.name;
-                descTargetBody.textContent = mod.desc;
-            }
-
-            function aggiornaDescrizioneMateriale() {
-                const mat = materialsDB[materialSelect.value] || materialsDB.pla;
-                descMatTitle.textContent = mat.name;
-                descMatBody.textContent = mat.desc;
-                document.getElementById('mat-temp').textContent = mat.temp;
-                document.getElementById('mat-strength').textContent = mat.strength;
-                document.getElementById('mat-heat').textContent = mat.heat;
-            }
-
-            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-                aggiornaDescrizioneModello();
-            });
-
-            materialSelect.addEventListener('change', () => {
-                aggiornaDescrizioneMateriale();
-            });
-
-            embeddedSliderBox.addEventListener('mousedown', (e) => e.stopPropagation());
-            embeddedSliderBox.addEventListener('mousemove', (e) => e.stopPropagation());
-            embeddedSliderBox.addEventListener('click', (e) => e.stopPropagation());
-
-            let animFrameId = null, isOpen = false, time = 0;
-            const speedSteps = [1, 2, 3, 0.5];
-            let speedIdx = 0;
-
-            const state = { model: 'gear', speed: 1, totalLayers: 42, baseRotY: 0.6, targetMouseX: 0, targetMouseY: 0, currentMouseX: 0, currentMouseY: 0 };
-
-            protoSpeedBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                speedIdx = (speedIdx + 1) % speedSteps.length;
-                state.speed = speedSteps[speedIdx];
-                protoSpeedBtn.textContent = `${state.speed}x`;
-            });
-
-            window.apriBoxPrototipazione = function() {
-                modal.classList.add('active');
-                isOpen = true;
-                aggiornaDescrizioneModello();
-                aggiornaDescrizioneMateriale();
-                resizeCanvas();
-                if (!animFrameId) animate();
-            };
-
-            function chiudiModal() {
-                modal.classList.remove('active');
-                isOpen = false;
-                if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
-            }
-
-            closeBtn.addEventListener('click', chiudiModal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) chiudiModal(); });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) chiudiModal(); });
-
-            richiediProtoBtn.addEventListener('click', () => {
-                chiudiModal();
-                const msgField = document.getElementById('messaggio');
-                const tipoModello = modelSelect.options[modelSelect.selectedIndex].text;
-                const matScelto = materialsDB[materialSelect.value].name;
-                msgField.value = `Salve, vorrei richiedere un preventivo per Prototipazione 3D in ${matScelto} (riferimento: ${tipoModello}, ${state.totalLayers} layer).`;
-                document.getElementById('sezione-contatti').scrollIntoView({ behavior: 'smooth' });
-                msgField.focus();
-            });
-
-            layersSlider.addEventListener('input', (e) => {
-                state.totalLayers = parseInt(e.target.value, 10);
-                const mm = (8.4 / state.totalLayers).toFixed(2);
-                layersValue.textContent = `${state.totalLayers} strati (${mm}mm)`;
-                hudRes.textContent = `ALTEZZA STRATO: ${mm}mm`;
-            });
-
-            viewerWrapper.addEventListener('mousemove', (e) => {
-                const rect = viewerWrapper.getBoundingClientRect();
-                state.targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-                state.targetMouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-            });
-            viewerWrapper.addEventListener('mouseleave', () => { state.targetMouseX = 0; state.targetMouseY = 0; });
-
-            let width, height;
-            function resizeCanvas() {
-                const rect = viewerWrapper.getBoundingClientRect();
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                width = rect.width; height = rect.height;
-                canvas.width = width * dpr; canvas.height = height * dpr;
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            }
-            window.addEventListener('resize', () => { if (isOpen) resizeCanvas(); });
-
-            function project(x, y, z, rotY, tiltX) {
-                const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-                const rx = x * cosY - z * sinY, rz = x * sinY + z * cosY;
-                const cosX = Math.cos(tiltX), sinX = Math.sin(tiltX);
-                const ry = y * cosX - rz * sinX, finalZ = y * sinX + rz * cosX;
-                const scale = 620 / (620 + finalZ + 320);
-                return { x: (width * 0.5) + rx * scale, y: (height * 0.62) - ry * scale };
-            }
-
-            function getModelPoints(layerIdx, totalLayers) {
-                const progress = layerIdx / totalLayers;
-                const y = progress * 125;
-                const pts = [], segments = 60, baseRadius = 74;
-                for (let i = 0; i <= segments; i++) {
-                    const angle = (i / segments) * Math.PI * 2;
-                    let r = baseRadius;
-                    if (state.model === 'gear') r = baseRadius * 0.85 + (Math.sin(angle * 12) > 0 ? 10 : -4);
-                    else if (state.model === 'vase') r = baseRadius * (0.72 + 0.3 * Math.sin(progress * Math.PI * 1.35)) + Math.cos(angle * 8 + progress * Math.PI * 1.2) * 7;
-                    else if (state.model === 'helix') r = baseRadius * (0.68 + 0.32 * Math.cos(angle * 3 - progress * Math.PI * 2.2));
-                    else if (state.model === 'bracket') r = baseRadius * 0.82 + (progress < 0.18 ? 16 : 0) + Math.cos(angle * 10) * 4;
-                    pts.push({ x: Math.cos(angle) * r, y: y, z: Math.sin(angle) * r });
-                }
-                return pts;
-            }
-
-            function drawBuildPlate(rotY, tiltX, pal) {
-                const size = 126, step = 25;
-                ctx.lineWidth = 1;
-                for (let i = -size; i <= size; i += step) {
-                    ctx.strokeStyle = i === 0 ? pal.axis : pal.gridMinor;
-                    const p1 = project(-size, 0, i, rotY, tiltX), p2 = project(size, 0, i, rotY, tiltX);
-                    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-                    const p3 = project(i, 0, -size, rotY, tiltX), p4 = project(i, 0, size, rotY, tiltX);
-                    ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.stroke();
-                }
-            }
-
-            function animate() {
-                if (!isOpen) return;
-                const pal = window.getCanvasTheme ? window.getCanvasTheme() : {
-                    gridMinor: "rgba(56, 189, 248, 0.08)",
-                    axis: "rgba(56, 189, 248, 0.25)",
-                    wireframe: "rgba(56, 189, 248, 0.08)",
-                    infill: "rgba(14, 165, 233, 0.16)",
-                    layerBase: (t) => `rgba(14, 165, 233, ${0.28 + t * 0.45})`,
-                    activeStroke: "#7dd3fc",
-                    nozzleLine: "rgba(125, 211, 252, 0.45)",
-                    nozzleDot: "#ffffff"
-                };
-
-                time += 0.016 * state.speed;
-                state.baseRotY += 0.0035;
-                state.currentMouseX += (state.targetMouseX - state.currentMouseX) * 0.07;
-                state.currentMouseY += (state.targetMouseY - state.currentMouseY) * 0.07;
-                const rotY = state.baseRotY + state.currentMouseX * 0.95;
-                const tiltX = 0.42 + state.currentMouseY * 0.32;
-
-                ctx.clearRect(0, 0, width, height);
-                drawBuildPlate(rotY, tiltX, pal);
-
-                const cycle = state.totalLayers + 10;
-                const rawProgress = (time * 6.5) % cycle;
-                const activeLayer = Math.min(Math.floor(rawProgress), state.totalLayers - 1);
-                const layerFrac = rawProgress - Math.floor(rawProgress);
-                hudLayer.textContent = `LAYER: ${activeLayer + 1} / ${state.totalLayers}`;
-
-                ctx.lineWidth = 0.6;
-                ctx.strokeStyle = pal.wireframe;
-                for (let l = activeLayer + 1; l < state.totalLayers; l += 2) {
-                    const pts = getModelPoints(l, state.totalLayers);
-                    ctx.beginPath();
-                    pts.forEach((pt, idx) => { const proj = project(pt.x, pt.y, pt.z, rotY, tiltX); idx === 0 ? ctx.moveTo(proj.x, proj.y) : ctx.lineTo(proj.x, proj.y); });
-                    ctx.stroke();
-                }
-
-                for (let l = 0; l <= activeLayer; l++) {
-                    const pts = getModelPoints(l, state.totalLayers);
-                    const isCurrent = (l === activeLayer && rawProgress < state.totalLayers);
-                    const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
-
-                    if (l % 4 === 0 && !isCurrent) {
-                        ctx.strokeStyle = pal.infill;
-                        ctx.lineWidth = 0.8;
-                        for (let k = 0; k < pts.length; k += 10) {
-                            const pA = project(pts[k].x, pts[k].y, pts[k].z, rotY, tiltX);
-                            const pB = project(pts[(k + 25) % pts.length].x, pts[k].y, pts[(k + 25) % pts.length].z, rotY, tiltX);
-                            ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.stroke();
-                        }
-                    }
-
-                    ctx.lineWidth = isCurrent ? 2.2 : 1.3;
-                    ctx.strokeStyle = isCurrent ? pal.activeStroke : pal.layerBase(l / state.totalLayers);
-                    ctx.beginPath();
-                    for (let i = 0; i <= maxIdx; i++) {
-                        const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
-                        i === 0 ? ctx.moveTo(proj.x, proj.y) : ctx.lineTo(proj.x, proj.y);
-                        if (isCurrent && i === maxIdx) {
-                            const nozzleTop = project(pts[i].x, pts[i].y + 95, pts[i].z, rotY, tiltX);
-                            ctx.save();
-                            ctx.strokeStyle = pal.nozzleLine;
-                            ctx.lineWidth = 1.5;
-                            ctx.beginPath(); ctx.moveTo(nozzleTop.x, nozzleTop.y); ctx.lineTo(proj.x, proj.y); ctx.stroke();
-                            ctx.fillStyle = pal.nozzleDot; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 12;
-                            ctx.beginPath(); ctx.arc(proj.x, proj.y, 3.2, 0, Math.PI * 2); ctx.fill();
-                            ctx.restore();
-                        }
-                    }
-                    ctx.stroke();
-                }
-                animFrameId = requestAnimationFrame(animate);
-            }
-        })();
-    </script>
-
-    <!-- Script Simulatore 2D CAD -->
-    <script>
-        (function() {
-            const modal = document.getElementById('cadModal');
-            const closeBtn = document.getElementById('closeCadModalBtn');
-            const viewerWrapper = document.getElementById('cadViewerWrapper');
-            const canvas = document.getElementById('cad-canvas');
-            const ctx = canvas.getContext('2d');
-
-            const modelSelect = document.getElementById('cadModelSelect');
-            const cadSpeedBtn = document.getElementById('cadSpeedBtn');
-            const dimsToggle = document.getElementById('cadDimsToggle');
-            const hudCoords = document.getElementById('cad-hud-coords');
-            const hudScale = document.getElementById('cad-hud-scale');
-            const richiediCadBtn = document.getElementById('richiediCadBtn');
-
-            let animFrameId = null, isOpen = false, time = 0;
-            const speedSteps = [1, 2, 3, 0.5];
-            let speedIdx = 0;
-
-            const state = { model: 'facade', speed: 1, showDims: true };
-
-            cadSpeedBtn.addEventListener('click', () => {
-                speedIdx = (speedIdx + 1) % speedSteps.length;
-                state.speed = speedSteps[speedIdx];
-                cadSpeedBtn.textContent = `${state.speed}x`;
-            });
-
-            window.apriBoxCad = function() {
-                modal.classList.add('active');
-                isOpen = true;
-                resizeCanvas();
-                if (!animFrameId) animate();
-            };
-
-            function chiudiModal() {
-                modal.classList.remove('active');
-                isOpen = false;
-                if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
-            }
-
-            closeBtn.addEventListener('click', chiudiModal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) chiudiModal(); });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) chiudiModal(); });
-
-            richiediCadBtn.addEventListener('click', () => {
-                chiudiModal();
-                const msgField = document.getElementById('messaggio');
-                const tipoElaborato = modelSelect.options[modelSelect.selectedIndex].text;
-                msgField.value = `Salve, vorrei richiedere una consulenza per Progettazione CAD 2D (esempio: ${tipoElaborato}).`;
-                document.getElementById('sezione-contatti').scrollIntoView({ behavior: 'smooth' });
-                msgField.focus();
-            });
-
-            const cadDescTitle = document.getElementById('cad-desc-title');
-            const cadDescBody = document.getElementById('cad-desc-body');
-            const cadModelsDB = {
-                facade: {
-                    name: 'Prospetto Facciata Abitazione',
-                    desc: 'Restituzione grafica di prospetti esterni, aperture, falde e quote altimetriche in scala per pratiche edilizie, rilievi e studio dei materiali.'
-                },
-                floorplan: {
-                    name: 'Piantina Architettonica (Bilocale)',
-                    desc: 'Distribuzione interna quotata, murature, infissi e verso di apertura porte per ristrutturazioni, arredo e ottimizzazione degli spazi.'
-                },
-                section2d: {
-                    name: 'Sezione Strutturale con Scala',
-                    desc: 'Sezione verticale con quote di piano, solai e rampe di scala per verificare altezze libere, collegamenti verticali e dettagli costruttivi.'
-                },
-                gear2d: {
-                    name: 'Ingranaggio Meccanico Quotato',
-                    desc: 'Disegno tecnico in scala 1:1 con assi di simmetria, diametri nominali e fori di alleggerimento pronto per lavorazioni meccaniche o estrusione 3D.'
-                }
-            };
-
-            function aggiornaDescrizioneCad() {
-                const info = cadModelsDB[modelSelect.value] || cadModelsDB.facade;
-                if (cadDescTitle) cadDescTitle.textContent = info.name;
-                if (cadDescBody) cadDescBody.textContent = info.desc;
-            }
-
-            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-                hudScale.textContent = state.model === 'gear2d' ? 'SCALA 1:1 • ORTHO ON' : 'SCALA 1:50 • ARCH-CAD';
-                aggiornaDescrizioneCad();
-                time = 0;
-            });
-            aggiornaDescrizioneCad();
-
-            dimsToggle.addEventListener('change', (e) => { state.showDims = e.target.checked; });
-
-            let width, height;
-            function resizeCanvas() {
-                const rect = viewerWrapper.getBoundingClientRect();
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                width = rect.width; height = rect.height;
-                canvas.width = width * dpr; canvas.height = height * dpr;
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            }
-            window.addEventListener('resize', () => { if (isOpen) resizeCanvas(); });
-
-            function drawCadGrid(cx, cy, pal) {
-                const minor = 16, major = minor * 5;
-                ctx.lineWidth = 1;
-                for (let x = cx % minor; x < width; x += minor) { ctx.strokeStyle = pal.gridMinor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
-                for (let y = cy % minor; y < height; y += minor) { ctx.strokeStyle = pal.gridMinor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
-                for (let x = cx % major; x < width; x += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
-                for (let y = cy % major; y < height; y += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
-
-                if (state.showDims) {
-                    ctx.save();
-                    ctx.setLineDash([8, 4, 2, 4]);
-                    ctx.strokeStyle = pal.axis;
-                    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();
-                    ctx.restore();
-                }
-            }
-
-            function getCadPaths(cx, cy) {
-                const paths = [];
-                if (state.model === 'facade') {
-                    const base = cy + 92;
-                    paths.push({ pts: [{ x: cx - 175, y: base }, { x: cx + 175, y: base }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx - 130, y: base }, { x: cx - 130, y: base - 125 }, { x: cx + 55, y: base - 125 }, { x: cx + 55, y: base }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx + 55, y: base - 78 }, { x: cx + 140, y: base - 78 }, { x: cx + 140, y: base }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx - 144, y: base - 122 }, { x: cx - 38, y: base - 172 }, { x: cx + 68, y: base - 122 }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx - 136, y: base - 125 }, { x: cx - 38, y: base - 165 }, { x: cx + 60, y: base - 125 }], style: 'thin' });
-                    paths.push({ pts: [{ x: cx - 130, y: base - 64 }, { x: cx + 55, y: base - 64 }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 95, y: base }, { x: cx - 95, y: base - 46 }, { x: cx - 68, y: base - 46 }, { x: cx - 68, y: base }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 38, y: base - 12 }, { x: cx - 38, y: base - 48 }, { x: cx + 28, y: base - 48 }, { x: cx + 28, y: base - 12 }, { x: cx - 38, y: base - 12 }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 5, y: base - 12 }, { x: cx - 5, y: base - 48 }], style: 'thin' });
-                    paths.push({ pts: [{ x: cx - 102, y: base - 78 }, { x: cx - 102, y: base - 110 }, { x: cx - 64, y: base - 110 }, { x: cx - 64, y: base - 78 }, { x: cx - 102, y: base - 78 }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 25, y: base - 78 }, { x: cx - 25, y: base - 110 }, { x: cx + 25, y: base - 110 }, { x: cx + 25, y: base - 78 }, { x: cx - 25, y: base - 78 }], style: 'main' });
-                } else if (state.model === 'floorplan') {
-                    const w = 135, h = 88, t = 7;
-                    paths.push({ pts: [{ x: cx - w, y: cy - h }, { x: cx + w, y: cy - h }, { x: cx + w, y: cy + h }, { x: cx - w, y: cy + h }, { x: cx - w, y: cy - h }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx - w + t, y: cy - h + t }, { x: cx + w - t, y: cy - h + t }, { x: cx + w - t, y: cy + h - t }, { x: cx - w + t, y: cy + h - t }, { x: cx - w + t, y: cy - h + t }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 15, y: cy - h + t }, { x: cx - 15, y: cy + 12 }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 15, y: cy + 42 }, { x: cx - 15, y: cy + h - t }], style: 'main' });
-                    paths.push({ pts: [{ x: cx - 15, y: cy - 5 }, { x: cx + w - t, y: cy - 5 }], style: 'main' });
-                    const doorArc = [{ x: cx - 15, y: cy + 12 }, { x: cx + 15, y: cy + 12 }];
-                    for (let i = 0; i <= 16; i++) { const a = (i / 16) * (Math.PI / 2); doorArc.push({ x: cx - 15 + Math.cos(a) * 30, y: cy + 12 + Math.sin(a) * 30 }); }
-                    paths.push({ pts: doorArc, style: 'thin' });
-                } else if (state.model === 'section2d') {
-                    const base = cy + 88;
-                    paths.push({ pts: [{ x: cx - 135, y: base + 14 }, { x: cx - 135, y: base - 130 }, { x: cx + 135, y: base - 130 }, { x: cx + 135, y: base + 14 }, { x: cx - 135, y: base + 14 }], style: 'wall' });
-                    paths.push({ pts: [{ x: cx - 127, y: base - 62 }, { x: cx + 15, y: base - 62 }, { x: cx + 15, y: base - 52 }, { x: cx - 127, y: base - 52 }], style: 'main' });
-                    const stepsPts = [{ x: cx - 65, y: base }], numSteps = 8, stepW = 10, stepH = 62 / numSteps;
-                    for (let s = 0; s < numSteps; s++) {
-                        const sx = cx - 65 + s * stepW, sy = base - s * stepH;
-                        stepsPts.push({ x: sx, y: sy - stepH }, { x: sx + stepW, y: sy - stepH });
-                    }
-                    paths.push({ pts: stepsPts, style: 'main' });
-                } else if (state.model === 'gear2d') {
-                    const outerPts = [], teeth = 14, steps = teeth * 8, rBase = 86;
-                    for (let i = 0; i <= steps; i++) {
-                        const a = (i / steps) * Math.PI * 2, wave = Math.sin(a * teeth);
-                        const r = rBase + (wave > 0.15 ? 11 : (wave < -0.15 ? -7 : wave * 25));
-                        outerPts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
-                    }
-                    paths.push({ pts: outerPts, style: 'main' });
-                    const hubPts = [];
-                    for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2; const r = (a > 1.35 && a < 1.79) ? 30 : 24; hubPts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r }); }
-                    paths.push({ pts: hubPts, style: 'main' });
-                    for (let h = 0; h < 4; h++) {
-                        const centerA = (h * Math.PI) / 2 + Math.PI / 4, hx = cx + Math.cos(centerA) * 54, hy = cy + Math.sin(centerA) * 54, holePts = [];
-                        for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI * 2; holePts.push({ x: hx + Math.cos(a) * 12, y: hy + Math.sin(a) * 12 }); }
-                        paths.push({ pts: holePts, style: 'main' });
-                    }
-                }
-                return paths;
-            }
-
-            function drawDimensions(cx, cy, alpha, pal) {
-                if (!state.showDims || alpha <= 0) return;
-                ctx.save();
-                ctx.globalAlpha = alpha;
-                ctx.strokeStyle = pal.dimColor;
-                ctx.fillStyle = pal.dimColor;
-                ctx.font = '11px monospace';
-                ctx.lineWidth = 1;
-
-                if (state.model === 'facade') {
-                    const base = cy + 92, yDim = base + 20, xDim = cx - 158;
-                    ctx.beginPath(); ctx.moveTo(cx - 130, base); ctx.lineTo(cx - 130, yDim + 4); ctx.moveTo(cx + 140, base); ctx.lineTo(cx + 140, yDim + 4); ctx.moveTo(cx - 130, yDim); ctx.lineTo(cx + 140, yDim); ctx.stroke();
-                    ctx.fillText('11.40 m (PROSPETTO SUD)', cx - 64, yDim + 13);
-                    ctx.beginPath(); ctx.moveTo(cx - 130, base); ctx.lineTo(xDim - 4, base); ctx.moveTo(cx - 38, base - 172); ctx.lineTo(xDim - 4, base - 172); ctx.moveTo(xDim, base); ctx.lineTo(xDim, base - 172); ctx.stroke();
-                    ctx.fillText('+6.85m', xDim + 5, base - 82);
-                } else if (state.model === 'floorplan') {
-                    const w = 135, h = 88, yDim = cy - h - 18, xDim = cx + w + 18;
-                    ctx.beginPath(); ctx.moveTo(cx - w, cy - h); ctx.lineTo(cx - w, yDim - 4); ctx.moveTo(cx + w, cy - h); ctx.lineTo(cx + w, yDim - 4); ctx.moveTo(cx - w, yDim); ctx.lineTo(cx + w, yDim); ctx.stroke();
-                    ctx.fillText('8.50 m', cx - 18, yDim - 5);
-                    ctx.beginPath(); ctx.moveTo(cx + w, cy - h); ctx.lineTo(xDim + 4, cy - h); ctx.moveTo(cx + w, cy + h); ctx.lineTo(xDim + 4, cy + h); ctx.moveTo(xDim, cy - h); ctx.lineTo(xDim, cy + h); ctx.stroke();
-                    ctx.fillText('5.40 m', xDim + 6, cy + 4);
-                } else if (state.model === 'section2d') {
-                    const base = cy + 88, xDim = cx + 150;
-                    ctx.beginPath(); ctx.moveTo(cx + 135, base); ctx.lineTo(xDim + 4, base); ctx.moveTo(cx + 135, base - 62); ctx.lineTo(xDim + 4, base - 62); ctx.moveTo(xDim, base); ctx.lineTo(xDim, base - 62); ctx.stroke();
-                    ctx.fillText('H=2.70m', xDim + 5, base - 28);
-                } else if (state.model === 'gear2d') {
-                    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = pal.axis; ctx.beginPath(); ctx.arc(cx, cy, 86, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
-                    const yDim = cy - 115;
-                    ctx.beginPath(); ctx.moveTo(cx - 97, cy); ctx.lineTo(cx - 97, yDim - 4); ctx.moveTo(cx + 97, cy); ctx.lineTo(cx + 97, yDim - 4); ctx.moveTo(cx - 97, yDim); ctx.lineTo(cx + 97, yDim); ctx.stroke();
-                    ctx.fillText('Ø 120.00 mm (Z=14)', cx - 52, yDim - 6);
-                }
-                ctx.restore();
-            }
-
-            function animate() {
-                if (!isOpen) return;
-                const pal = window.getCanvasTheme ? window.getCanvasTheme() : {
-                    gridMinor: "rgba(56, 189, 248, 0.05)",
-                    gridMajor: "rgba(56, 189, 248, 0.12)",
-                    axis: "rgba(56, 189, 248, 0.25)",
-                    wallStroke: "#7dd3fc",
-                    thinStroke: "rgba(56, 189, 248, 0.55)",
-                    activeStroke: "#38bdf8",
-                    dimColor: "#7dd3fc",
-                    cursor: "#ffffff"
-                };
-
-                time += 0.016 * state.speed;
-                const cx = width * 0.5, cy = height * 0.52;
-                ctx.clearRect(0, 0, width, height);
-                drawCadGrid(cx, cy, pal);
-
-                const paths = getCadPaths(cx, cy);
-                const totalSegments = paths.reduce((acc, p) => acc + p.pts.length, 0);
-                const drawDuration = 135, pauseDuration = 60, cycle = drawDuration + pauseDuration;
-                const progressFrame = (time * 22) % cycle;
-                const ratio = Math.min(1, progressFrame / drawDuration);
-                const targetSegments = Math.floor(totalSegments * ratio);
-
-                let drawnCount = 0, cursorPos = { x: cx, y: cy };
-                paths.forEach((path) => {
-                    if (drawnCount >= targetSegments) return;
-                    const count = Math.min(path.pts.length, targetSegments - drawnCount);
-                    ctx.save();
-                    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                    if (path.style === 'wall') { ctx.strokeStyle = pal.wallStroke; ctx.lineWidth = 2.2; }
-                    else if (path.style === 'thin') { ctx.strokeStyle = pal.thinStroke; ctx.lineWidth = 1.1; ctx.setLineDash([3, 3]); }
-                    else { ctx.strokeStyle = pal.activeStroke; ctx.lineWidth = 1.6; }
-
-                    ctx.beginPath();
-                    for (let i = 0; i < count; i++) {
-                        const pt = path.pts[i];
-                        i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
-                        cursorPos = pt;
-                    }
-                    ctx.stroke();
-                    ctx.restore();
-                    drawnCount += path.pts.length;
-                });
-
-                const dimAlpha = ratio > 0.65 ? Math.min(1, (ratio - 0.65) / 0.35) : 0;
-                drawDimensions(cx, cy, dimAlpha, pal);
-
-                if (ratio < 1) {
-                    const relX = ((cursorPos.x - cx) * 0.05).toFixed(2), relY = ((cy - cursorPos.y) * 0.05).toFixed(2);
-                    hudCoords.textContent = `X: ${relX}  Y: ${relY} m`;
-                    ctx.save(); ctx.strokeStyle = pal.cursor; ctx.lineWidth = 1.2;
-                    ctx.beginPath(); ctx.moveTo(cursorPos.x - 9, cursorPos.y); ctx.lineTo(cursorPos.x + 9, cursorPos.y); ctx.moveTo(cursorPos.x, cursorPos.y - 9); ctx.lineTo(cursorPos.x, cursorPos.y + 9); ctx.stroke();
-                    ctx.fillStyle = pal.activeStroke; ctx.beginPath(); ctx.arc(cursorPos.x, cursorPos.y, 2.5, 0, Math.PI * 2); ctx.fill();
-                    ctx.restore();
-                } else {
-                    hudCoords.textContent = `TAVOLA COMPLETATA`;
-                }
-                animFrameId = requestAnimationFrame(animate);
-            }
-        })();
-    </script>
-
-    <!-- Script Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
-            authDomain: "laosbackend.firebaseapp.com",
-            projectId: "laosbackend",
-            storageBucket: "laosbackend.firebasestorage.app",
-            messagingSenderId: "971024190529",
-            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        function creaCardElemento(item) {
-            const titolo = item.Titolo || 'Senza titolo';
-            const titoloLower = titolo.toLowerCase();
-            const isPrototipazione = titoloLower.includes('prototipazione');
-            const isCad = titoloLower.includes('cad') || titoloLower.includes('progettazione');
-            const isInteractive = isPrototipazione || isCad;
-
-            const imgTag = item.immagineUrl ? `<img src="${item.immagineUrl}" alt="${titolo}" onerror="this.style.display='none'">` : '';
-            let hintText = '';
-            if (isPrototipazione) hintText = "Clicca per aprire l'anteprima 3D e i materiali &rarr;";
-            else if (isCad) hintText = "Clicca per aprire la tavola CAD 2D &rarr;";
-
-            const cardEl = document.createElement('article');
-            cardEl.className = isInteractive ? 'card clickable' : 'card';
-            cardEl.innerHTML = `
-                <div>
-                    ${imgTag}
-                    <span class="badge">${item.Categoria || 'Servizio'}</span>
-                    <h3>${titolo}</h3>
-                    <p>${item.Descrizione || ''}</p>
-                </div>
-                ${hintText ? `<div class="card-action-hint">${hintText}</div>` : ''}
-            `;
-
-            if (isPrototipazione) cardEl.addEventListener('click', () => window.apriBoxPrototipazione());
-            else if (isCad) cardEl.addEventListener('click', () => window.apriBoxCad());
-            return cardEl;
-        }
-
-        async function caricaCatalogo() {
-            const container = document.getElementById("catalogo-container");
-            try {
-                const querySnapshot = await getDocs(collection(db, "catalogo"));
-                container.innerHTML = "";
-                let hasCadService = false;
-
-                querySnapshot.forEach((doc) => {
-                    const item = doc.data();
-                    if ((item.Titolo || '').toLowerCase().includes('progettazione cad')) hasCadService = true;
-                    container.appendChild(creaCardElemento(item));
-                });
-
-                if (!hasCadService) {
-                    container.appendChild(creaCardElemento({
-                        Titolo: "Progettazione CAD",
-                        Categoria: "Servizio",
-                        Descrizione: "Disegno tecnico 2D, prospetti architettonici e modellazione parametrica 3D per parti meccaniche e prototipi."
-                    }));
-                }
-            } catch (errore) {
-                console.error("Errore nel caricamento:", errore);
-                container.innerHTML = "<p style='color: #f87171;'>Errore nel caricamento del catalogo.</p>";
-            }
-        }
-
-        document.getElementById("formContatto").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const stato = document.getElementById("statoInvio");
-            stato.textContent = "Invio in corso...";
-            stato.style.color = "#38bdf8";
-
-            try {
-                await addDoc(collection(db, "richieste_contatto"), {
-                    nome: document.getElementById("nome").value,
-                    email: document.getElementById("email").value,
-                    messaggio: document.getElementById("messaggio").value,
-                    dataInvio: serverTimestamp()
-                });
-                stato.textContent = "Richiesta inviata con successo! Ti ricontatteremo presto.";
-                stato.style.color = "#4ade80";
-                e.target.reset();
-            } catch (errore) {
-                console.error("Errore nell'invio:", errore);
-                stato.textContent = "Errore durante l'invio. Riprova più tardi.";
-                stato.style.color = "#f87171";
-            }
-        });
-
-        caricaCatalogo();
-    </script>
-</body>
-</html>
-
-```

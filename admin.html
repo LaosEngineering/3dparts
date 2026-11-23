@@ -3,69 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Laos Engineering / 3DParts</title>
+    <title>Admin - 3DParts</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .box { max-width: 1050px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input, select, textarea, button { padding: 10px; margin: 5px 0; font-size: 15px; box-sizing: border-box; font-family: inherit; }
-        input, select, textarea { width: 100%; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: #24292e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .box { max-width: 1000px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select, button { padding: 10px; margin: 5px 0; font-size: 16px; box-sizing: border-box; }
+        input, select { width: 100%; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #24292e; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0366d6; }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
-
+        
         .nascondi { display: none; }
-
-        .admin-top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .admin-nav-tabs {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 22px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 10px;
-        }
-
-        .admin-tab-btn {
-            background: #e5e7eb;
-            color: #1f2937;
-            padding: 9px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .admin-tab-btn.active {
-            background: #0366d6;
-            color: #fff;
-        }
-
+        
         /* Layout Pannello Admin con Dettaglio laterale */
         .admin-layout { display: flex; gap: 20px; margin-top: 20px; position: relative; }
         .lista-container { flex: 1; transition: all 0.3s; }
-
+        
         /* Card della richiesta */
-        .richiesta-card {
-            background: #fff;
-            border-left: 4px solid #0366d6;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            border-radius: 4px;
+        .richiesta-card { 
+            background: #fff; 
+            border-left: 4px solid #0366d6; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1); 
+            border-radius: 4px; 
             cursor: pointer;
             position: relative;
             transition: transform 0.2s;
         }
         .richiesta-card:hover { background: #f8f9fa; transform: translateY(-2px); }
-
+        
+        /* Testo tagliato a 2 righe */
         .testo-anteprima {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -76,23 +43,22 @@
             margin: 8px 0;
         }
 
+        /* Pulsante elimina */
         .btn-elimina {
             background: #d73a49;
             color: white;
             border: none;
             padding: 6px 12px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
-        }
-        .btn-elimina:hover { background: #cb2431; }
-
-        .richiesta-card .btn-elimina {
             position: absolute;
             top: 15px;
             right: 15px;
         }
+        .btn-elimina:hover { background: #cb2431; }
 
+        /* Box Laterale (Drawer) Dettaglio */
         .dettaglio-lato {
             width: 0;
             overflow: hidden;
@@ -108,7 +74,7 @@
             max-height: 80vh;
         }
         .dettaglio-lato.attivo {
-            width: 380px;
+            width: 400px;
             padding: 20px;
         }
         .chiudi-dettaglio {
@@ -133,242 +99,16 @@
             border-radius: 6px;
             align-items: end;
         }
-
-        .filtri-bacheca-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 18px;
-            background: #f1f8ff;
-            padding: 15px;
-            border-radius: 6px;
-            align-items: end;
-        }
-
-        @media (max-width: 768px) {
-            .filtri-box, .filtri-bacheca-box { grid-template-columns: 1fr; }
-            .admin-layout { flex-direction: column; }
-            .dettaglio-lato.attivo { width: auto; position: static; }
-        }
-
-        /* Elenco post bacheca stile richieste contatto */
-        .bacheca-elenco-item {
-            background: #fff;
-            border-left: 4px solid #0366d6;
-            padding: 15px 95px 15px 15px;
-            margin-bottom: 14px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            border-radius: 4px;
-            cursor: pointer;
-            position: relative;
-            transition: background 0.2s, transform 0.2s;
-        }
-        .bacheca-elenco-item:hover {
-            background: #f8f9fa;
-            transform: translateY(-1px);
-        }
-        .bacheca-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 8px;
-        }
-        .btn-modifica {
-            background: #0366d6;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .btn-modifica:hover {
-            background: #0256b9;
-        }
-        .edit-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.65);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            padding: 20px;
-        }
-        .edit-modal-overlay.attivo {
-            display: flex;
-        }
-        .edit-modal-box {
-            background: #ffffff;
-            color: #1f2937;
-            width: 100%;
-            max-width: 620px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-            box-sizing: border-box;
-        }
-        .edit-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 10px;
-        }
-        .edit-modal-close {
-            background: #e5e7eb;
-            color: #1f2937;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .edit-modal-close:hover {
-            background: #d1d5db;
-        }
-        .edit-existing-imgs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-        }
-        .edit-img-chip {
-            position: relative;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 4px;
-            background: #f8fafc;
-        }
-        .edit-img-chip img {
-            width: 96px;
-            height: 76px;
-            object-fit: cover;
-            border-radius: 4px;
-            display: block;
-        }
-        .edit-img-remove {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 22px;
-            height: 22px;
-            padding: 0;
-            border-radius: 50%;
-            background: #d73a49;
-            color: #fff;
-            font-size: 13px;
-            line-height: 22px;
-            text-align: center;
-        }
-        .bacheca-immagini-espansa {
-            display: none;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .bacheca-immagini-espansa.aperto {
-            display: flex;
-        }
-        .bacheca-immagini-espansa img {
-            max-width: 220px;
-            max-height: 160px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-        }
-
-        /* Form Pubblicazione Post (Bacheca & Macro) */
-        .post-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 26px;
-        }
-        .post-form-grid .full-width {
-            grid-column: 1 / -1;
-        }
-        @media (max-width: 768px) {
-            .post-form-grid { grid-template-columns: 1fr; }
-        }
-
-        .preview-img-box {
-            margin-top: 8px;
-            border: 1px dashed #cbd5e1;
-            border-radius: 6px;
-            padding: 10px;
-            background: #fff;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .preview-img-box img {
-            max-width: 180px;
-            max-height: 150px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-
-        .posts-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-            gap: 16px;
-        }
-
-        .admin-post-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 14px;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .admin-post-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #f1f5f9;
-        }
-
-        .status-msg {
-            font-size: 14px;
-            font-weight: 600;
-            margin: 6px 0 0 0;
-        }
     </style>
 </head>
 <body>
 
     <div class="box">
-        <div class="admin-top-bar">
-            <div>
-                <h2 style="margin:0;">Pannello di Amministrazione</h2>
-                <small style="color:#64748b;">Laos Engineering / 3DParts</small>
-            </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <a href="index.html" style="text-decoration:none; background:#e2e8f0; color:#1e293b; padding:9px 14px; border-radius:4px; font-size:14px; font-weight:600;">&larr; Vai al Sito</a>
-                <button id="logoutBtn" class="nascondi" style="padding: 9px 15px; background: #d73a49;">Esci</button>
-            </div>
-        </div>
+        <h2>Pannello di Amministrazione</h2>
 
         <!-- SEZIONE LOGIN -->
         <div id="sezione-login">
-            <p>Accedi per gestire le richieste dei clienti, la Bacheca Pezzi Realizzati e la Vetrina Foto Macro.</p>
+            <p>Accedi per visualizzare le richieste dei clienti.</p>
             <input type="email" id="emailAdmin" placeholder="Email Admin">
             <input type="password" id="passwordAdmin" placeholder="Password">
             <button id="loginBtn" style="width:100%;">Accedi</button>
@@ -377,146 +117,53 @@
 
         <!-- SEZIONE RISERVATA -->
         <div id="sezione-admin" class="nascondi">
-            <div class="admin-nav-tabs">
-                <button type="button" class="admin-tab-btn active" data-tab="tab-richieste">Richieste Contatto</button>
-                <button type="button" class="admin-tab-btn" data-tab="tab-bacheca">Nuovo Post Bacheca</button>
-                <button type="button" class="admin-tab-btn" data-tab="tab-macro">Nuovo Post Foto Macro</button>
-            </div>
-
-            <!-- TAB 1: RICHIESTE CONTATTO -->
-            <div id="tab-richieste" class="admin-tab-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>Richieste di Contatto Ricevute</h3>
+                <button id="logoutBtn" style="width: auto; padding: 8px 15px; background: #d73a49;">Esci</button>
+            </div>
 
-                <div class="filtri-box">
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Cerca per nome o azienda:</label>
-                        <input type="text" id="inputRicerca" placeholder="Es. Mario...">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Data Inizio:</label>
-                        <input type="date" id="dataDal">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Data Fine:</label>
-                        <input type="date" id="dataAl">
-                    </div>
+            <!-- FILTRI E RICERCA CON DATE -->
+            <div class="filtri-box">
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Cerca per nome o azienda:</label>
+                    <input type="text" id="inputRicerca" placeholder="Es. Mario...">
                 </div>
-
-                <div class="admin-layout">
-                    <div class="lista-container" id="lista-richieste">
-                        <p>Caricamento richieste...</p>
-                    </div>
-
-                    <div class="dettaglio-lato" id="boxDettaglio">
-                        <button class="chiudi-dettaglio" id="btnChiudiDettaglio">&times;</button>
-                        <h3>Dettaglio Richiesta</h3>
-                        <p><strong>Nome/Azienda:</strong> <span id="detNome"></span></p>
-                        <p><strong>Email:</strong> <a id="detEmailLink" href=""><span id="detEmail"></span></a></p>
-                        <p><strong>Data:</strong> <span id="detData"></span></p>
-                        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                        <p><strong>Messaggio completo:</strong></p>
-                        <p id="detMessaggio" style="white-space: pre-wrap; line-height: 1.6; color: #333; background: #f9f9f9; padding: 12px; border-radius: 4px;"></p>
-                    </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Data Inizio:</label>
+                    <input type="date" id="dataDal">
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:bold;">Data Fine:</label>
+                    <input type="date" id="dataAl">
                 </div>
             </div>
 
-            <!-- TAB 2: NUOVO POST BACHECA PEZZI REALIZZATI -->
-            <div id="tab-bacheca" class="admin-tab-panel nascondi">
-                <h3>Pubblica Nuovo Pezzo nella Bacheca</h3>
-                <p style="color:#64748b; font-size:14px;">Scegli il titolo, carica una o più foto dal PC (verranno salvate su Firebase) e aggiungi i dettagli.</p>
-
-                <form id="formBacheca" class="post-form-grid">
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Titolo del Pezzo *</label>
-                        <input type="text" id="bachecaTitolo" placeholder="Es. Supporto Motore CNC" required>
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Categoria / Badge</label>
-                        <input type="text" id="bachecaCategoria" placeholder="Es. Meccanica, Prototipazione, CAD">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Materiale</label>
-                        <input type="text" id="bachecaMateriale" placeholder="Es. PA12-CF, PETG, ASA">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Altezza Layer / Tolleranza</label>
-                        <input type="text" id="bachecaLayer" placeholder="Es. Layer: 0.16 mm">
-                    </div>
-                    <div class="full-width">
-                        <label style="font-size:13px; font-weight:bold;">Descrizione *</label>
-                        <textarea id="bachecaDescrizione" rows="3" placeholder="Descrivi il componente realizzato, applicazione o tolleranze..." required></textarea>
-                    </div>
-                    <div class="full-width">
-                        <label style="font-size:13px; font-weight:bold;">Foto dal PC (salvate su Firebase) *</label>
-                        <input type="file" id="bachecaFotoFile" accept="image/*" multiple required>
-                        <div id="bachecaPreviewBox" class="preview-img-box nascondi"></div>
-                    </div>
-                    <div class="full-width">
-                        <button type="submit" id="btnPubblicaBacheca">Pubblica in Bacheca</button>
-                        <p id="statoBacheca" class="status-msg"></p>
-                    </div>
-                </form>
-
-                <h4>Post Bacheca Salvati su Firebase</h4>
-                <div class="filtri-bacheca-box">
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Ordina per data:</label>
-                        <select id="bachecaOrdineData">
-                            <option value="desc">Più recenti prima</option>
-                            <option value="asc">Più vecchi prima</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Data Inizio:</label>
-                        <input type="date" id="bachecaDataDal">
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Data Fine:</label>
-                        <input type="date" id="bachecaDataAl">
-                    </div>
+            <div class="admin-layout">
+                <!-- LISTA PRINCIPALE -->
+                <div class="lista-container" id="lista-richieste">
+                    <p>Caricamento richieste...</p>
                 </div>
-                <div id="lista-bacheca-admin">
-                    <p>Caricamento...</p>
-                </div>
-            </div>
 
-            <!-- TAB 3: NUOVO POST VETRINA FOTO MACRO -->
-            <div id="tab-macro" class="admin-tab-panel nascondi">
-                <h3>Pubblica Nuova Foto nella Vetrina Macro</h3>
-                <p style="color:#64748b; font-size:14px;">Scegli il titolo, carica una o più foto macro dal PC (verranno salvate su Firebase) e indica i parametri tecnici.</p>
-
-                <form id="formMacro" class="post-form-grid">
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Titolo Foto Macro *</label>
-                        <input type="text" id="macroTitolo" placeholder="Es. Dettaglio Layer 0.12mm su PETG" required>
-                    </div>
-                    <div>
-                        <label style="font-size:13px; font-weight:bold;">Parametri Tecnici / Ottica</label>
-                        <input type="text" id="macroTech" placeholder="Es. Ugello 0.4mm • Temp 240°C • Layer 0.12mm">
-                    </div>
-                    <div class="full-width">
-                        <label style="font-size:13px; font-weight:bold;">Foto Macro dal PC (salvate su Firebase) *</label>
-                        <input type="file" id="macroFotoFile" accept="image/*" multiple required>
-                        <div id="macroPreviewBox" class="preview-img-box nascondi"></div>
-                    </div>
-                    <div class="full-width">
-                        <button type="submit" id="btnPubblicaMacro">Pubblica nella Vetrina Macro</button>
-                        <p id="statoMacro" class="status-msg"></p>
-                    </div>
-                </form>
-
-                <h4>Post Foto Macro Salvati su Firebase</h4>
-                <div id="lista-macro-admin" class="posts-list">
-                    <p>Caricamento...</p>
+                <!-- BOX LATERALE DETTAGLIO -->
+                <div class="dettaglio-lato" id="boxDettaglio">
+                    <button class="chiudi-dettaglio" id="btnChiudiDettaglio">×</button>
+                    <h3>Dettaglio Richiesta</h3>
+                    <p><strong>Nome/Azienda:</strong> <span id="detNome"></span></p>
+                    <p><strong>Email:</strong> <a id="detEmailLink" href=""><span id="detEmail"></span></a></p>
+                    <p><strong>Data:</strong> <span id="detData"></span></p>
+                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                    <p><strong>Messaggio completo:</strong></p>
+                    <p id="detMessaggio" style="white-space: pre-wrap; line-height: 1.6; color: #333; background: #f9f9f9; padding: 12px; border-radius: 4px;"></p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Script Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc, query, orderBy, deleteDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChYUaNJ02DAZZd3FOIu0fBuv8KeooVW98",
@@ -527,36 +174,21 @@
             appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
         };
 
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let tutteLeRichieste = [];
-        let tuttiPostBacheca = [];
 
         const sezioneLogin = document.getElementById("sezione-login");
         const sezioneAdmin = document.getElementById("sezione-admin");
-        const logoutBtn = document.getElementById("logoutBtn");
         const listaRichieste = document.getElementById("lista-richieste");
         const erroreLogin = document.getElementById("erroreLogin");
         const boxDettaglio = document.getElementById("boxDettaglio");
         const inputRicerca = document.getElementById("inputRicerca");
         const dataDal = document.getElementById("dataDal");
         const dataAl = document.getElementById("dataAl");
-
-        const bachecaOrdineData = document.getElementById("bachecaOrdineData");
-        const bachecaDataDal = document.getElementById("bachecaDataDal");
-        const bachecaDataAl = document.getElementById("bachecaDataAl");
-
-        // Switch tab pannello admin
-        document.querySelectorAll(".admin-tab-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
-                document.querySelectorAll(".admin-tab-panel").forEach(p => p.classList.add("nascondi"));
-                btn.classList.add("active");
-                document.getElementById(btn.dataset.tab).classList.remove("nascondi");
-            });
-        });
 
         // Login
         document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -571,7 +203,7 @@
         });
 
         // Logout
-        logoutBtn.addEventListener("click", async () => {
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
             await signOut(auth);
             boxDettaglio.classList.remove("attivo");
         });
@@ -580,18 +212,14 @@
             if (user) {
                 sezioneLogin.classList.add("nascondi");
                 sezioneAdmin.classList.remove("nascondi");
-                logoutBtn.classList.remove("nascondi");
                 caricaRichieste();
-                caricaBachecaAdmin();
-                caricaPostAdmin("macro", "lista-macro-admin");
             } else {
                 sezioneLogin.classList.remove("nascondi");
                 sezioneAdmin.classList.add("nascondi");
-                logoutBtn.classList.add("nascondi");
             }
         });
 
-        // ---------------- RICHIESTE CONTATTO ----------------
+        // Scarica richieste da Firestore (ordinate di default dalla più recente)
         async function caricaRichieste() {
             listaRichieste.innerHTML = "Caricamento...";
             try {
@@ -610,19 +238,29 @@
             }
         }
 
+        // Filtra e mostra le richieste a schermo
         function mostraRichieste() {
             const testoFiltro = inputRicerca.value.toLowerCase();
             const valDal = dataDal.value ? new Date(dataDal.value) : null;
             const valAl = dataAl.value ? new Date(dataAl.value) : null;
-            if (valAl) valAl.setHours(23, 59, 59, 999);
+            
+            // Imposta la fine della giornata per la data "Al" così include tutta la giornata selezionata
+            if (valAl) {
+                valAl.setHours(23, 59, 59, 999);
+            }
 
             const filtrate = tutteLeRichieste.filter(r => {
-                const matchNome = (r.nome || "").toLowerCase().includes(testoFiltro);
+                // Filtro nome/azienda
+                const matchNome = r.nome.toLowerCase().includes(testoFiltro);
+                
+                // Filtro data
                 if (!r.dataInvio) return matchNome;
                 const dataRichiesta = r.dataInvio.toDate();
+
                 let matchData = true;
                 if (valDal && dataRichiesta < valDal) matchData = false;
                 if (valAl && dataRichiesta > valAl) matchData = false;
+
                 return matchNome && matchData;
             });
 
@@ -634,6 +272,7 @@
             listaRichieste.innerHTML = "";
             filtrate.forEach((r) => {
                 const dataFormattata = r.dataInvio ? r.dataInvio.toDate().toLocaleString() : "Data non disponibile";
+                
                 const card = document.createElement("div");
                 card.className = "richiesta-card";
                 card.innerHTML = `
@@ -644,11 +283,13 @@
                     <p style="font-size: 11px; color: #888; margin:5px 0 0 0;">${dataFormattata}</p>
                 `;
 
+                // Click sulla card per aprire il dettaglio a destra
                 card.addEventListener("click", (e) => {
                     if (e.target.tagName === "BUTTON") return;
                     apriDettaglio(r, dataFormattata);
                 });
 
+                // Gestione bottone Elimina
                 card.querySelector(".btn-elimina").addEventListener("click", async () => {
                     if (confirm(`Vuoi davvero eliminare la richiesta di ${r.nome}?`)) {
                         try {
@@ -665,6 +306,7 @@
             });
         }
 
+        // Apri il box laterale
         function apriDettaglio(r, dataFormattata) {
             document.getElementById("detNome").textContent = r.nome;
             document.getElementById("detEmail").textContent = r.email;
@@ -674,460 +316,15 @@
             boxDettaglio.classList.add("attivo");
         }
 
+        // Chiudi box laterale
         document.getElementById("btnChiudiDettaglio").addEventListener("click", () => {
             boxDettaglio.classList.remove("attivo");
         });
 
+        // Eventi per filtri in tempo reale
         inputRicerca.addEventListener("input", mostraRichieste);
         dataDal.addEventListener("change", mostraRichieste);
         dataAl.addEventListener("change", mostraRichieste);
-
-        // ---------------- COMPRESSIONE & SALVATAGGIO FOTO SU FIREBASE ----------------
-        function comprimiImmagineDataUrl(file, maxWidth = 820, quality = 0.72) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        let w = img.width;
-                        let h = img.height;
-                        if (w > maxWidth) {
-                            h = Math.round((h * maxWidth) / w);
-                            w = maxWidth;
-                        }
-                        const canvas = document.createElement("canvas");
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL("image/jpeg", quality));
-                    };
-                    img.onerror = reject;
-                    img.src = ev.target.result;
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-
-        async function salvaFotoSuFirebase(file, cartella) {
-            const compressedUrl = await comprimiImmagineDataUrl(file, 820, 0.72);
-            return { url: compressedUrl, percorso: "", viaStorage: false };
-        }
-
-        function setupAnteprimaMultipla(inputId, boxId) {
-            const input = document.getElementById(inputId);
-            const box = document.getElementById(boxId);
-            input.addEventListener("change", () => {
-                const files = Array.from(input.files || []);
-                box.innerHTML = "";
-                if (!files.length) {
-                    box.classList.add("nascondi");
-                    return;
-                }
-                box.classList.remove("nascondi");
-                files.forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        const img = document.createElement("img");
-                        img.src = ev.target.result;
-                        img.alt = file.name || "Anteprima";
-                        box.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                });
-            });
-        }
-
-        setupAnteprimaMultipla("bachecaFotoFile", "bachecaPreviewBox");
-        setupAnteprimaMultipla("macroFotoFile", "macroPreviewBox");
-
-        // ---------------- PUBBLICAZIONE & ELENCO BACHECA ADMIN ----------------
-        document.getElementById("formBacheca").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById("btnPubblicaBacheca");
-            const stato = document.getElementById("statoBacheca");
-            const files = Array.from(document.getElementById("bachecaFotoFile").files || []);
-
-            if (!files.length) {
-                stato.textContent = "Seleziona almeno una foto dal PC.";
-                stato.style.color = "#d73a49";
-                return;
-            }
-
-            btn.disabled = true;
-            stato.textContent = "Salvataggio foto e post su Firebase in corso...";
-            stato.style.color = "#0366d6";
-
-            try {
-                const salvate = [];
-                for (const file of files) {
-                    const res = await salvaFotoSuFirebase(file, "bacheca");
-                    salvate.push(res);
-                }
-                const urls = salvate.map(s => s.url);
-
-                await addDoc(collection(db, "bacheca"), {
-                    titolo: document.getElementById("bachecaTitolo").value.trim(),
-                    categoria: document.getElementById("bachecaCategoria").value.trim() || "Realizzazione",
-                    materiale: document.getElementById("bachecaMateriale").value.trim(),
-                    layer: document.getElementById("bachecaLayer").value.trim(),
-                    descrizione: document.getElementById("bachecaDescrizione").value.trim(),
-                    immagineUrl: urls[0] || "",
-                    immagini: urls,
-                    dataCreazione: serverTimestamp()
-                });
-
-                stato.textContent = "Post e foto salvati su Firebase e pubblicati in Bacheca!";
-                stato.style.color = "#15803d";
-                e.target.reset();
-                document.getElementById("bachecaPreviewBox").classList.add("nascondi");
-                document.getElementById("bachecaPreviewBox").innerHTML = "";
-                caricaBachecaAdmin();
-            } catch (err) {
-                console.error("Errore salvataggio Firebase:", err);
-                const msg = err && err.message ? err.message : String(err);
-                stato.textContent = "Errore durante il salvataggio su Firebase: " + msg;
-                stato.style.color = "#d73a49";
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
-        async function caricaBachecaAdmin() {
-            const container = document.getElementById("lista-bacheca-admin");
-            container.innerHTML = "<p>Caricamento...</p>";
-            try {
-                const q = query(collection(db, "bacheca"), orderBy("dataCreazione", "desc"));
-                const snap = await getDocs(q);
-                tuttiPostBacheca = [];
-                snap.forEach((docSnap) => {
-                    tuttiPostBacheca.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                mostraBachecaAdmin();
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = "<p style='color:#d73a49;'>Errore nel caricamento dei post bacheca.</p>";
-            }
-        }
-
-        function mostraBachecaAdmin() {
-            const container = document.getElementById("lista-bacheca-admin");
-            const ordine = bachecaOrdineData.value || "desc";
-            const valDal = bachecaDataDal.value ? new Date(bachecaDataDal.value) : null;
-            const valAl = bachecaDataAl.value ? new Date(bachecaDataAl.value) : null;
-            if (valAl) valAl.setHours(23, 59, 59, 999);
-
-            const filtrate = tuttiPostBacheca.filter((p) => {
-                if (!p.dataCreazione || typeof p.dataCreazione.toDate !== "function") return true;
-                const d = p.dataCreazione.toDate();
-                if (valDal && d < valDal) return false;
-                if (valAl && d > valAl) return false;
-                return true;
-            });
-
-            filtrate.sort((a, b) => {
-                const ta = (a.dataCreazione && typeof a.dataCreazione.toDate === "function") ? a.dataCreazione.toDate().getTime() : 0;
-                const tb = (b.dataCreazione && typeof b.dataCreazione.toDate === "function") ? b.dataCreazione.toDate().getTime() : 0;
-                return ordine === "asc" ? ta - tb : tb - ta;
-            });
-
-            if (!filtrate.length) {
-                container.innerHTML = "<p style='color:#64748b;'>Nessun post trovato per i filtri selezionati.</p>";
-                return;
-            }
-
-            container.innerHTML = "";
-            filtrate.forEach((p) => {
-                const titolo = p.titolo || p.Titolo || "Senza titolo";
-                const descrizione = p.descrizione || p.Descrizione || "";
-                const listaImg = Array.isArray(p.immagini) && p.immagini.length ? p.immagini : (p.immagineUrl ? [p.immagineUrl] : []);
-                const valide = listaImg.filter(u => typeof u === "string" && u.trim() && u.trim().toLowerCase() !== "true");
-
-                const item = document.createElement("div");
-                item.className = "bacheca-elenco-item";
-
-                const imgsHtml = valide.length
-                    ? valide.map((src, i) => `<img src="${src}" alt="${titolo} ${i + 1}">`).join("")
-                    : `<span style="color:#64748b;font-size:13px;">Nessuna immagine disponibile</span>`;
-
-                item.innerHTML = `
-                    <div class="bacheca-actions">
-                        <button type="button" class="btn-modifica">Modifica</button>
-                        <button type="button" class="btn-elimina">Elimina</button>
-                    </div>
-                    <h4 style="margin:0 0 6px 0; color:#24292e;">${titolo}</h4>
-                    <p style="margin:0; color:#4b5563; line-height:1.45;">${descrizione}</p>
-                    <div class="bacheca-immagini-espansa">${imgsHtml}</div>
-                `;
-
-                item.addEventListener("click", (ev) => {
-                    if (ev.target.tagName === "BUTTON") return;
-                    const boxImg = item.querySelector(".bacheca-immagini-espansa");
-                    boxImg.classList.toggle("aperto");
-                });
-
-                item.querySelector(".btn-modifica").addEventListener("click", (ev) => {
-                    ev.stopPropagation();
-                    apriBoxModificaBacheca({
-                        ...p,
-                        titolo,
-                        descrizione,
-                        immaginiPulite: valide
-                    });
-                });
-
-                item.querySelector(".btn-elimina").addEventListener("click", async (ev) => {
-                    ev.stopPropagation();
-                    if (confirm(`Eliminare "${titolo}"?`)) {
-                        await deleteDoc(doc(db, "bacheca", p.id));
-                        caricaBachecaAdmin();
-                    }
-                });
-
-                container.appendChild(item);
-            });
-        }
-
-        bachecaOrdineData.addEventListener("change", mostraBachecaAdmin);
-        bachecaDataDal.addEventListener("change", mostraBachecaAdmin);
-        bachecaDataAl.addEventListener("change", mostraBachecaAdmin);
-
-        
-        // ---------------- MODIFICA POST BACHECA ----------------
-        const boxModificaBacheca = document.getElementById("boxModificaBacheca");
-        const formModificaBacheca = document.getElementById("formModificaBacheca");
-        const editBachecaImmaginiAttuali = document.getElementById("editBachecaImmaginiAttuali");
-        const statoModificaBacheca = document.getElementById("statoModificaBacheca");
-        let immaginiInModifica = [];
-
-        function renderImmaginiInModifica() {
-            editBachecaImmaginiAttuali.innerHTML = "";
-            if (!immaginiInModifica.length) {
-                editBachecaImmaginiAttuali.innerHTML = "<span style='color:#64748b;font-size:13px;'>Nessuna immagine presente.</span>";
-                return;
-            }
-            immaginiInModifica.forEach((url, idx) => {
-                const chip = document.createElement("div");
-                chip.className = "edit-img-chip";
-                chip.innerHTML = `
-                    <img src="${url}" alt="Foto ${idx + 1}">
-                    <button type="button" class="edit-img-remove" title="Rimuovi foto">&times;</button>
-                `;
-                chip.querySelector(".edit-img-remove").addEventListener("click", () => {
-                    immaginiInModifica.splice(idx, 1);
-                    renderImmaginiInModifica();
-                });
-                editBachecaImmaginiAttuali.appendChild(chip);
-            });
-        }
-
-        function apriBoxModificaBacheca(post) {
-            document.getElementById("editBachecaId").value = post.id;
-            document.getElementById("editBachecaTitolo").value = post.titolo || "";
-            document.getElementById("editBachecaCategoria").value = post.categoria || post.Categoria || "";
-            document.getElementById("editBachecaMateriale").value = post.materiale || post.Materiale || "";
-            document.getElementById("editBachecaLayer").value = post.layer || post.Layer || "";
-            document.getElementById("editBachecaDescrizione").value = post.descrizione || "";
-            document.getElementById("editBachecaNuoveFoto").value = "";
-            statoModificaBacheca.textContent = "";
-            immaginiInModifica = [...(post.immaginiPulite || [])];
-            renderImmaginiInModifica();
-            boxModificaBacheca.classList.add("attivo");
-        }
-
-        function chiudiBoxModificaBacheca() {
-            boxModificaBacheca.classList.remove("attivo");
-            statoModificaBacheca.textContent = "";
-        }
-
-        document.getElementById("btnChiudiModifica").addEventListener("click", chiudiBoxModificaBacheca);
-        document.getElementById("btnAnnullaModifica").addEventListener("click", chiudiBoxModificaBacheca);
-        boxModificaBacheca.addEventListener("click", (ev) => {
-            if (ev.target === boxModificaBacheca) chiudiBoxModificaBacheca();
-        });
-
-        formModificaBacheca.addEventListener("submit", async (ev) => {
-            ev.preventDefault();
-            const postId = document.getElementById("editBachecaId").value;
-            const btnSalva = document.getElementById("btnSalvaModificaBacheca");
-            const nuoveFiles = Array.from(document.getElementById("editBachecaNuoveFoto").files || []);
-
-            if (!postId) return;
-
-            btnSalva.disabled = true;
-            statoModificaBacheca.textContent = "Salvataggio modifiche su Firebase in corso...";
-            statoModificaBacheca.style.color = "#0366d6";
-
-            try {
-                const aggiornate = [...immaginiInModifica];
-                for (const file of nuoveFiles) {
-                    const res = await salvaFotoSuFirebase(file, "bacheca");
-                    if (res && res.url) aggiornate.push(res.url);
-                }
-
-                await updateDoc(doc(db, "bacheca", postId), {
-                    titolo: document.getElementById("editBachecaTitolo").value.trim(),
-                    categoria: document.getElementById("editBachecaCategoria").value.trim() || "Realizzazione",
-                    materiale: document.getElementById("editBachecaMateriale").value.trim(),
-                    layer: document.getElementById("editBachecaLayer").value.trim(),
-                    descrizione: document.getElementById("editBachecaDescrizione").value.trim(),
-                    immagineUrl: aggiornate[0] || "",
-                    immagini: aggiornate
-                });
-
-                statoModificaBacheca.textContent = "Modifiche salvate!";
-                statoModificaBacheca.style.color = "#15803d";
-                await caricaBachecaAdmin();
-                setTimeout(chiudiBoxModificaBacheca, 350);
-            } catch (err) {
-                console.error("Errore modifica post bacheca:", err);
-                const msg = err && err.message ? err.message : String(err);
-                statoModificaBacheca.textContent = "Errore durante il salvataggio: " + msg;
-                statoModificaBacheca.style.color = "#d73a49";
-            } finally {
-                btnSalva.disabled = false;
-            }
-        });
-
-        // ---------------- PUBBLICAZIONE VETRINA MACRO ----------------
-        document.getElementById("formMacro").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById("btnPubblicaMacro");
-            const stato = document.getElementById("statoMacro");
-            const files = Array.from(document.getElementById("macroFotoFile").files || []);
-
-            if (!files.length) {
-                stato.textContent = "Seleziona almeno una foto macro dal PC.";
-                stato.style.color = "#d73a49";
-                return;
-            }
-
-            btn.disabled = true;
-            stato.textContent = "Salvataggio foto macro su Firebase in corso...";
-            stato.style.color = "#0366d6";
-
-            try {
-                const titoloBase = document.getElementById("macroTitolo").value.trim();
-                const tech = document.getElementById("macroTech").value.trim() || "Dettaglio Ottico Macro";
-
-                for (let i = 0; i < files.length; i++) {
-                    const res = await salvaFotoSuFirebase(files[i], "macro");
-                    const titoloPost = files.length > 1 ? `${titoloBase} (${i + 1}/${files.length})` : titoloBase;
-                    await addDoc(collection(db, "macro"), {
-                        titolo: titoloPost,
-                        tech: tech,
-                        immagineUrl: res.url,
-                        immagini: [res.url],
-                        dataCreazione: serverTimestamp()
-                    });
-                }
-
-                stato.textContent = "Foto macro salvate su Firebase e pubblicate nella vetrina!";
-                stato.style.color = "#15803d";
-                e.target.reset();
-                document.getElementById("macroPreviewBox").classList.add("nascondi");
-                document.getElementById("macroPreviewBox").innerHTML = "";
-                caricaPostAdmin("macro", "lista-macro-admin");
-            } catch (err) {
-                console.error("Errore salvataggio Firebase:", err);
-                const msg = err && err.message ? err.message : String(err);
-                stato.textContent = "Errore durante il salvataggio su Firebase: " + msg;
-                stato.style.color = "#d73a49";
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
-        // ---------------- ELENCO & ELIMINAZIONE POST MACRO ADMIN ----------------
-        async function caricaPostAdmin(nomeCollezione, containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = "<p>Caricamento...</p>";
-            try {
-                const q = query(collection(db, nomeCollezione), orderBy("dataCreazione", "desc"));
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    container.innerHTML = "<p style='color:#64748b;'>Nessun post personalizzato ancora inserito.</p>";
-                    return;
-                }
-                container.innerHTML = "";
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const titolo = d.titolo || d.Titolo || "Senza titolo";
-                    const sottoTitolo = d.categoria || d.Categoria || d.tech || "";
-                    const listaImg = Array.isArray(d.immagini) && d.immagini.length ? d.immagini : (d.immagineUrl ? [d.immagineUrl] : []);
-                    const imgUrl = listaImg.find(u => typeof u === "string" && u.trim() && u.trim().toLowerCase() !== "true") || "";
-
-                    const card = document.createElement("div");
-                    card.className = "admin-post-card";
-                    card.innerHTML = `
-                        <div>
-                            ${imgUrl ? `<img src="${imgUrl}" alt="${titolo}">` : `<div style="height:150px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:6px;color:#64748b;font-size:13px;">Nessuna foto URL</div>`}
-                            <h5 style="margin:8px 0 4px 0; font-size:15px;">${titolo}</h5>
-                            <small style="color:#64748b; display:block;">${sottoTitolo}${listaImg.length > 1 ? ` • ${listaImg.length} foto` : ""}</small>
-                        </div>
-                        <button type="button" class="btn-elimina">Elimina Post</button>
-                    `;
-                    card.querySelector(".btn-elimina").addEventListener("click", async () => {
-                        if (confirm(`Eliminare "${titolo}"?`)) {
-                            await deleteDoc(doc(db, nomeCollezione, docSnap.id));
-                            caricaPostAdmin(nomeCollezione, containerId);
-                        }
-                    });
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = "<p style='color:#d73a49;'>Errore nel caricamento dei post.</p>";
-            }
-        }
     </script>
-
-    <!-- BOX MODIFICA POST BACHECA -->
-    <div id="boxModificaBacheca" class="edit-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titoloBoxModifica">
-        <div class="edit-modal-box">
-            <div class="edit-modal-header">
-                <h3 id="titoloBoxModifica" style="margin:0;">Modifica Post Bacheca</h3>
-                <button type="button" id="btnChiudiModifica" class="edit-modal-close" aria-label="Chiudi">&times;</button>
-            </div>
-            <form id="formModificaBacheca">
-                <input type="hidden" id="editBachecaId">
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Titolo del Pezzo *</label>
-                    <input type="text" id="editBachecaTitolo" required>
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Categoria / Badge</label>
-                    <input type="text" id="editBachecaCategoria">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Materiale</label>
-                    <input type="text" id="editBachecaMateriale">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Altezza Layer / Tolleranza</label>
-                    <input type="text" id="editBachecaLayer">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Descrizione *</label>
-                    <textarea id="editBachecaDescrizione" rows="3" required></textarea>
-                </div>
-                <div style="margin-top:8px;">
-                    <label style="font-size:13px; font-weight:bold;">Immagini attuali del post (clicca &times; per rimuovere):</label>
-                    <div id="editBachecaImmaginiAttuali" class="edit-existing-imgs"></div>
-                </div>
-                <div style="margin-top:10px;">
-                    <label style="font-size:13px; font-weight:bold;">Aggiungi nuove foto dal PC (opzionale):</label>
-                    <input type="file" id="editBachecaNuoveFoto" accept="image/*" multiple>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:14px;">
-                    <button type="submit" id="btnSalvaModificaBacheca">Salva Modifiche</button>
-                    <button type="button" id="btnAnnullaModifica" style="background:#6b7280;">Annulla</button>
-                </div>
-                <p id="statoModificaBacheca" class="status-msg"></p>
-            </form>
-        </div>
-    </div>
-
 </body>
 </html>
