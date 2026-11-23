@@ -162,14 +162,16 @@
                 const snap = await getDocs(q);
                 snap.forEach((docSnap) => {
                     const d = docSnap.data();
-                    const titolo = d.titolo || "Dettaglio Macro";
-                    const tech = d.tech || "Ottica Macro";
+                    const titolo = d.titolo || d.Titolo || "Dettaglio Macro";
+                    const tech = d.tech || d.Tech || d.Descrizione || "Ottica Macro";
+                    const imgUrl = (typeof d.immagineUrl === 'string' && d.immagineUrl.trim() && d.immagineUrl.trim().toLowerCase() !== 'true') ? d.immagineUrl.trim() : '';
+                    if (!imgUrl) return;
                     const card = document.createElement("div");
                     card.className = "macro-card";
                     card.setAttribute("data-title", titolo);
                     card.setAttribute("data-tech", tech);
                     card.innerHTML = `
-                        <img src="${d.immagineUrl || ''}" alt="${titolo}" onerror="this.style.display='none'">
+                        <img src="${imgUrl}" alt="${titolo}" onerror="this.style.display='none'">
                         <div class="macro-overlay">
                             <h4>${titolo}</h4>
                             <span>${tech}</span>

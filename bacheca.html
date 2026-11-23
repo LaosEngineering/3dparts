@@ -128,18 +128,30 @@
                 const snap = await getDocs(q);
                 snap.forEach((docSnap) => {
                     const d = docSnap.data();
+                    const titolo = d.titolo || d.Titolo || 'Senza titolo';
+                    const categoria = d.categoria || d.Categoria || 'Realizzazione';
+                    const descrizione = d.descrizione || d.Descrizione || '';
+                    const materiale = d.materiale || d.Materiale || '';
+                    const layer = d.layer || d.Layer || '';
+                    const listaImg = Array.isArray(d.immagini) && d.immagini.length ? d.immagini : (d.immagineUrl ? [d.immagineUrl] : []);
+                    const valide = listaImg.filter(u => typeof u === 'string' && u.trim() && u.trim().toLowerCase() !== 'true');
+
                     const article = document.createElement("article");
                     article.className = "card";
                     const tags = [];
-                    if (d.materiale) tags.push(`<span class="meta-tag">Materiale: ${d.materiale}</span>`);
-                    if (d.layer) tags.push(`<span class="meta-tag">${d.layer}</span>`);
+                    if (materiale) tags.push(`<span class="meta-tag">Materiale: ${materiale}</span>`);
+                    if (layer) tags.push(`<span class="meta-tag">${layer}</span>`);
+
+                    const galleryHtml = valide.length > 1
+                        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;">${valide.map(u => `<img src="${u}" alt="${titolo}" style="height:110px;margin:0;" onerror="this.style.display='none'">`).join('')}</div>`
+                        : (valide.length === 1 ? `<img src="${valide[0]}" alt="${titolo}" onerror="this.style.display='none'">` : '');
 
                     article.innerHTML = `
                         <div>
-                            ${d.immagineUrl ? `<img src="${d.immagineUrl}" alt="${d.titolo || 'Pezzo realizzato'}" onerror="this.style.display='none'">` : ''}
-                            <span class="badge">${d.categoria || 'Realizzazione'}</span>
-                            <h3>${d.titolo || 'Senza titolo'}</h3>
-                            <p>${d.descrizione || ''}</p>
+                            ${galleryHtml}
+                            <span class="badge">${categoria}</span>
+                            <h3>${titolo}</h3>
+                            <p>${descrizione}</p>
                         </div>
                         ${tags.length ? `<div class="meta-tags">${tags.join('')}</div>` : ''}
                     `;
