@@ -134,10 +134,61 @@
             align-items: end;
         }
 
+        .filtri-bacheca-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 18px;
+            background: #f1f8ff;
+            padding: 15px;
+            border-radius: 6px;
+            align-items: end;
+        }
+
         @media (max-width: 768px) {
-            .filtri-box { grid-template-columns: 1fr; }
+            .filtri-box, .filtri-bacheca-box { grid-template-columns: 1fr; }
             .admin-layout { flex-direction: column; }
             .dettaglio-lato.attivo { width: auto; position: static; }
+        }
+
+        /* Elenco post bacheca stile richieste contatto */
+        .bacheca-elenco-item {
+            background: #fff;
+            border-left: 4px solid #0366d6;
+            padding: 15px 95px 15px 15px;
+            margin-bottom: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .bacheca-elenco-item:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+        .bacheca-elenco-item .btn-elimina {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .bacheca-immagini-espansa {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .bacheca-immagini-espansa.aperto {
+            display: flex;
+        }
+        .bacheca-immagini-espansa img {
+            max-width: 220px;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
         }
 
         /* Form Pubblicazione Post (Bacheca & Macro) */
@@ -314,7 +365,24 @@
                 </form>
 
                 <h4>Post Bacheca Salvati su Firebase</h4>
-                <div id="lista-bacheca-admin" class="posts-list">
+                <div class="filtri-bacheca-box">
+                    <div>
+                        <label style="font-size:13px; font-weight:bold;">Ordina per data:</label>
+                        <select id="bachecaOrdineData">
+                            <option value="desc">Più recenti prima</option>
+                            <option value="asc">Più vecchi prima</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:13px; font-weight:bold;">Data Inizio:</label>
+                        <input type="date" id="bachecaDataDal">
+                    </div>
+                    <div>
+                        <label style="font-size:13px; font-weight:bold;">Data Fine:</label>
+                        <input type="date" id="bachecaDataAl">
+                    </div>
+                </div>
+                <div id="lista-bacheca-admin">
                     <p>Caricamento...</p>
                 </div>
             </div>
@@ -356,7 +424,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, addDoc, query, orderBy, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChYUaNJ02DAZZd3FOIu0fBuv8KeooVW98",
@@ -370,9 +437,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         let tutteLeRichieste = [];
+        let tuttiPostBacheca = [];
 
         const sezioneLogin = document.getElementById("sezione-login");
         const sezioneAdmin = document.getElementById("sezione-admin");
@@ -383,6 +450,10 @@
         const inputRicerca = document.getElementById("inputRicerca");
         const dataDal = document.getElementById("dataDal");
         const dataAl = document.getElementById("dataAl");
+
+        const bachecaOrdineData = document.getElementById("bachecaOrdineData");
+        const bachecaDataDal = document.getElementById("bachecaDataDal");
+        const bachecaDataAl = document.getElementById("bachecaDataAl");
 
         // Switch tab pannello admin
         document.querySelectorAll(".admin-tab-btn").forEach(btn => {
@@ -418,7 +489,7 @@
                 sezioneAdmin.classList.remove("nascondi");
                 logoutBtn.classList.remove("nascondi");
                 caricaRichieste();
-                caricaPostAdmin("bacheca", "lista-bacheca-admin");
+                caricaBachecaAdmin();
                 caricaPostAdmin("macro", "lista-macro-admin");
             } else {
                 sezioneLogin.classList.remove("nascondi");
@@ -518,7 +589,7 @@
         dataDal.addEventListener("change", mostraRichieste);
         dataAl.addEventListener("change", mostraRichieste);
 
-        // ---------------- SALVATAGGIO FOTO SU FIREBASE (STORAGE + FALLBACK FIRESTORE) ----------------
+        // ---------------- COMPRESSIONE & SALVATAGGIO FOTO SU FIREBASE ----------------
         function comprimiImmagineDataUrl(file, maxWidth = 820, quality = 0.72) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -578,7 +649,7 @@
         setupAnteprimaMultipla("bachecaFotoFile", "bachecaPreviewBox");
         setupAnteprimaMultipla("macroFotoFile", "macroPreviewBox");
 
-        // ---------------- PUBBLICAZIONE BACHECA ----------------
+        // ---------------- PUBBLICAZIONE & ELENCO BACHECA ADMIN ----------------
         document.getElementById("formBacheca").addEventListener("submit", async (e) => {
             e.preventDefault();
             const btn = document.getElementById("btnPubblicaBacheca");
@@ -619,7 +690,7 @@
                 e.target.reset();
                 document.getElementById("bachecaPreviewBox").classList.add("nascondi");
                 document.getElementById("bachecaPreviewBox").innerHTML = "";
-                caricaPostAdmin("bacheca", "lista-bacheca-admin");
+                caricaBachecaAdmin();
             } catch (err) {
                 console.error("Errore salvataggio Firebase:", err);
                 const msg = err && err.message ? err.message : String(err);
@@ -629,6 +700,91 @@
                 btn.disabled = false;
             }
         });
+
+        async function caricaBachecaAdmin() {
+            const container = document.getElementById("lista-bacheca-admin");
+            container.innerHTML = "<p>Caricamento...</p>";
+            try {
+                const q = query(collection(db, "bacheca"), orderBy("dataCreazione", "desc"));
+                const snap = await getDocs(q);
+                tuttiPostBacheca = [];
+                snap.forEach((docSnap) => {
+                    tuttiPostBacheca.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                mostraBachecaAdmin();
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = "<p style='color:#d73a49;'>Errore nel caricamento dei post bacheca.</p>";
+            }
+        }
+
+        function mostraBachecaAdmin() {
+            const container = document.getElementById("lista-bacheca-admin");
+            const ordine = bachecaOrdineData.value || "desc";
+            const valDal = bachecaDataDal.value ? new Date(bachecaDataDal.value) : null;
+            const valAl = bachecaDataAl.value ? new Date(bachecaDataAl.value) : null;
+            if (valAl) valAl.setHours(23, 59, 59, 999);
+
+            const filtrate = tuttiPostBacheca.filter((p) => {
+                if (!p.dataCreazione || typeof p.dataCreazione.toDate !== "function") return true;
+                const d = p.dataCreazione.toDate();
+                if (valDal && d < valDal) return false;
+                if (valAl && d > valAl) return false;
+                return true;
+            });
+
+            filtrate.sort((a, b) => {
+                const ta = (a.dataCreazione && typeof a.dataCreazione.toDate === "function") ? a.dataCreazione.toDate().getTime() : 0;
+                const tb = (b.dataCreazione && typeof b.dataCreazione.toDate === "function") ? b.dataCreazione.toDate().getTime() : 0;
+                return ordine === "asc" ? ta - tb : tb - ta;
+            });
+
+            if (!filtrate.length) {
+                container.innerHTML = "<p style='color:#64748b;'>Nessun post trovato per i filtri selezionati.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+            filtrate.forEach((p) => {
+                const titolo = p.titolo || p.Titolo || "Senza titolo";
+                const descrizione = p.descrizione || p.Descrizione || "";
+                const listaImg = Array.isArray(p.immagini) && p.immagini.length ? p.immagini : (p.immagineUrl ? [p.immagineUrl] : []);
+                const valide = listaImg.filter(u => typeof u === "string" && u.trim() && u.trim().toLowerCase() !== "true");
+
+                const item = document.createElement("div");
+                item.className = "bacheca-elenco-item";
+
+                const imgsHtml = valide.length
+                    ? valide.map((src, i) => `<img src="${src}" alt="${titolo} ${i + 1}">`).join("")
+                    : `<span style="color:#64748b;font-size:13px;">Nessuna immagine disponibile</span>`;
+
+                item.innerHTML = `
+                    <button type="button" class="btn-elimina">Elimina</button>
+                    <h4 style="margin:0 0 6px 0; color:#24292e;">${titolo}</h4>
+                    <p style="margin:0; color:#4b5563; line-height:1.45;">${descrizione}</p>
+                    <div class="bacheca-immagini-espansa">${imgsHtml}</div>
+                `;
+
+                item.addEventListener("click", (ev) => {
+                    if (ev.target.tagName === "BUTTON") return;
+                    const boxImg = item.querySelector(".bacheca-immagini-espansa");
+                    boxImg.classList.toggle("aperto");
+                });
+
+                item.querySelector(".btn-elimina").addEventListener("click", async () => {
+                    if (confirm(`Eliminare "${titolo}"?`)) {
+                        await deleteDoc(doc(db, "bacheca", p.id));
+                        caricaBachecaAdmin();
+                    }
+                });
+
+                container.appendChild(item);
+            });
+        }
+
+        bachecaOrdineData.addEventListener("change", mostraBachecaAdmin);
+        bachecaDataDal.addEventListener("change", mostraBachecaAdmin);
+        bachecaDataAl.addEventListener("change", mostraBachecaAdmin);
 
         // ---------------- PUBBLICAZIONE VETRINA MACRO ----------------
         document.getElementById("formMacro").addEventListener("submit", async (e) => {
@@ -679,7 +835,7 @@
             }
         });
 
-        // ---------------- ELENCO & ELIMINAZIONE POST ADMIN ----------------
+        // ---------------- ELENCO & ELIMINAZIONE POST MACRO ADMIN ----------------
         async function caricaPostAdmin(nomeCollezione, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = "<p>Caricamento...</p>";
@@ -693,10 +849,10 @@
                 container.innerHTML = "";
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
-                    const titolo = d.titolo || d.Titolo || 'Senza titolo';
-                    const sottoTitolo = d.categoria || d.Categoria || d.tech || '';
+                    const titolo = d.titolo || d.Titolo || "Senza titolo";
+                    const sottoTitolo = d.categoria || d.Categoria || d.tech || "";
                     const listaImg = Array.isArray(d.immagini) && d.immagini.length ? d.immagini : (d.immagineUrl ? [d.immagineUrl] : []);
-                    const imgUrl = listaImg.find(u => typeof u === 'string' && u.trim() && u.trim().toLowerCase() !== 'true') || '';
+                    const imgUrl = listaImg.find(u => typeof u === "string" && u.trim() && u.trim().toLowerCase() !== "true") || "";
 
                     const card = document.createElement("div");
                     card.className = "admin-post-card";
@@ -704,7 +860,7 @@
                         <div>
                             ${imgUrl ? `<img src="${imgUrl}" alt="${titolo}">` : `<div style="height:150px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:6px;color:#64748b;font-size:13px;">Nessuna foto URL</div>`}
                             <h5 style="margin:8px 0 4px 0; font-size:15px;">${titolo}</h5>
-                            <small style="color:#64748b; display:block;">${sottoTitolo}${listaImg.length > 1 ? ` • ${listaImg.length} foto` : ''}</small>
+                            <small style="color:#64748b; display:block;">${sottoTitolo}${listaImg.length > 1 ? ` • ${listaImg.length} foto` : ""}</small>
                         </div>
                         <button type="button" class="btn-elimina">Elimina Post</button>
                     `;

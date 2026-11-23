@@ -5,6 +5,147 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laos Engineering / 3DParts - Bacheca Pezzi Realizzati</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .post-lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .post-lightbox-overlay.active {
+            display: flex;
+        }
+        .post-lightbox-box {
+            background: var(--card-bg, #1e293b);
+            color: var(--text-color, #f8fafc);
+            border-radius: 10px;
+            max-width: 920px;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .post-lightbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .post-lightbox-close {
+            background: #334155;
+            color: #fff;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .post-lightbox-close:hover {
+            background: #ef4444;
+        }
+        .post-stage {
+            position: relative;
+            background: #0f172a;
+            border-radius: 8px;
+            min-height: 320px;
+            max-height: 62vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 12px;
+        }
+        .post-stage img {
+            max-width: 100%;
+            max-height: 58vh;
+            object-fit: contain;
+            border-radius: 6px;
+            transition: transform 0.2s ease, max-width 0.2s ease, max-height 0.2s ease;
+            cursor: zoom-in;
+        }
+        .post-stage img.zoomed {
+            max-width: none;
+            max-height: none;
+            width: 165%;
+            cursor: zoom-out;
+        }
+        .post-arrow-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(15, 23, 42, 0.78);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.22);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+        }
+        .post-arrow-btn:hover {
+            background: #0284c7;
+        }
+        .post-arrow-btn.prev { left: 14px; }
+        .post-arrow-btn.next { right: 14px; }
+        .post-arrow-btn.hidden { display: none; }
+        .post-lightbox-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .post-zoom-btn {
+            background: #0284c7;
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .post-zoom-btn:hover {
+            background: #0369a1;
+        }
+        .post-thumbs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .post-thumbs img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            opacity: 0.65;
+            border: 2px solid transparent;
+        }
+        .post-thumbs img.active {
+            opacity: 1;
+            border-color: #38bdf8;
+        }
+        .bacheca-card-clickable {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,47 +171,10 @@
     <main>
         <section>
             <h2>Bacheca Pezzi Realizzati</h2>
-            <p class="section-subtitle">Raccolta di componenti funzionali, prototipi meccanici e modelli stampati nel nostro laboratorio.</p>
+            <p class="section-subtitle">Raccolta di componenti funzionali, prototipi meccanici e modelli stampati pubblicati dall'amministrazione. Clicca su un post per ingrandire e scorrere le foto.</p>
             
             <div id="bacheca-container" class="griglia-prodotti">
-                <article class="card">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=700&q=80" alt="Ingranaggio elicoidale">
-                        <span class="badge">Meccanica</span>
-                        <h3>Ingranaggio Elicoidale Rinforzato</h3>
-                        <p>Ricambio su misura progettato tramite reverse engineering per riduttore industriale, con tolleranza sul mozzo di ±0.1 mm.</p>
-                    </div>
-                    <div class="meta-tags">
-                        <span class="meta-tag">Materiale: PA12-CF</span>
-                        <span class="meta-tag">Layer: 0.16 mm</span>
-                    </div>
-                </article>
-
-                <article class="card">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1615818499660-30bb5816e1c7?auto=format&fit=crop&w=700&q=80" alt="Involucro elettronica">
-                        <span class="badge">Prototipazione</span>
-                        <h3>Case Custom per Scheda Elettronica</h3>
-                        <p>Contenitore con feritoie di aerazione, sedi per inserti filettati in ottone e chiusura a scatto senza viti visibili.</p>
-                    </div>
-                    <div class="meta-tags">
-                        <span class="meta-tag">Materiale: ASA Nero</span>
-                        <span class="meta-tag">Layer: 0.20 mm</span>
-                    </div>
-                </article>
-
-                <article class="card">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=700&q=80" alt="Plastico architettonico">
-                        <span class="badge">Architettura & CAD</span>
-                        <h3>Plastico Sezionabile Villa Bifamiliare</h3>
-                        <p>Modello in scala 1:100 ricavato da tavole CAD 2D, con tetto rimovibile per ispezionare la distribuzione degli ambienti interni.</p>
-                    </div>
-                    <div class="meta-tags">
-                        <span class="meta-tag">Materiale: PLA+ Opaco</span>
-                        <span class="meta-tag">Layer: 0.12 mm</span>
-                    </div>
-                </article>
+                <p id="bacheca-status" style="color:#64748b;">Caricamento post dalla bacheca...</p>
             </div>
 
             <div style="text-align: center; margin-top: 45px;">
@@ -78,6 +182,34 @@
             </div>
         </section>
     </main>
+
+    <!-- Modale Zoom & Galleria Singolo Post -->
+    <div id="postLightbox" class="post-lightbox-overlay" role="dialog" aria-modal="true" aria-labelledby="postLightboxTitle">
+        <div class="post-lightbox-box">
+            <div class="post-lightbox-header">
+                <div>
+                    <h3 id="postLightboxTitle" style="margin:0 0 4px 0;"></h3>
+                    <p id="postLightboxDesc" style="margin:0; font-size:14px; opacity:0.88;"></p>
+                </div>
+                <button type="button" id="postLightboxClose" class="post-lightbox-close" aria-label="Chiudi">&times;</button>
+            </div>
+
+            <div class="post-stage" id="postStage">
+                <button type="button" id="postPrevBtn" class="post-arrow-btn prev" aria-label="Immagine precedente">&#8249;</button>
+                <img id="postLightboxImg" src="" alt="Immagine post">
+                <button type="button" id="postNextBtn" class="post-arrow-btn next" aria-label="Immagine successiva">&#8250;</button>
+            </div>
+
+            <div class="post-lightbox-toolbar">
+                <span id="postImgCounter" style="font-size:13px; opacity:0.85;"></span>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" id="postZoomToggle" class="post-zoom-btn">🔍 Zoom +</button>
+                </div>
+            </div>
+
+            <div id="postThumbs" class="post-thumbs"></div>
+        </div>
+    </div>
 
     <footer>
         <div class="footer-grid">
@@ -121,30 +253,148 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Stato Lightbox Singolo Post
+        const lightbox = document.getElementById("postLightbox");
+        const lbTitle = document.getElementById("postLightboxTitle");
+        const lbDesc = document.getElementById("postLightboxDesc");
+        const lbImg = document.getElementById("postLightboxImg");
+        const lbCounter = document.getElementById("postImgCounter");
+        const lbThumbs = document.getElementById("postThumbs");
+        const prevBtn = document.getElementById("postPrevBtn");
+        const nextBtn = document.getElementById("postNextBtn");
+        const zoomBtn = document.getElementById("postZoomToggle");
+        const closeBtn = document.getElementById("postLightboxClose");
+
+        let currentImages = [];
+        let currentIdx = 0;
+        let isZoomed = false;
+
+        function setZoom(zoomState) {
+            isZoomed = zoomState;
+            lbImg.classList.toggle("zoomed", isZoomed);
+            zoomBtn.textContent = isZoomed ? "🔎 Zoom -" : "🔍 Zoom +";
+        }
+
+        function renderLightboxImage() {
+            if (!currentImages.length) return;
+            setZoom(false);
+            lbImg.src = currentImages[currentIdx];
+            lbCounter.textContent = `Immagine ${currentIdx + 1} di ${currentImages.length}`;
+            const multi = currentImages.length > 1;
+            prevBtn.classList.toggle("hidden", !multi);
+            nextBtn.classList.toggle("hidden", !multi);
+
+            Array.from(lbThumbs.children).forEach((thumb, i) => {
+                thumb.classList.toggle("active", i === currentIdx);
+            });
+        }
+
+        function openPostLightbox(post, startIndex = 0) {
+            const imgs = post.immagini || [];
+            if (!imgs.length) return;
+            currentImages = imgs;
+            currentIdx = Math.max(0, Math.min(startIndex, imgs.length - 1));
+            lbTitle.textContent = post.titolo;
+            lbDesc.textContent = post.descrizione;
+
+            lbThumbs.innerHTML = "";
+            if (imgs.length > 1) {
+                imgs.forEach((src, i) => {
+                    const t = document.createElement("img");
+                    t.src = src;
+                    t.alt = `${post.titolo} ${i + 1}`;
+                    t.addEventListener("click", (ev) => {
+                        ev.stopPropagation();
+                        currentIdx = i;
+                        renderLightboxImage();
+                    });
+                    lbThumbs.appendChild(t);
+                });
+            }
+
+            renderLightboxImage();
+            lightbox.classList.add("active");
+        }
+
+        function closePostLightbox() {
+            setZoom(false);
+            lightbox.classList.remove("active");
+        }
+
+        prevBtn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            if (!currentImages.length) return;
+            currentIdx = (currentIdx - 1 + currentImages.length) % currentImages.length;
+            renderLightboxImage();
+        });
+
+        nextBtn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            if (!currentImages.length) return;
+            currentIdx = (currentIdx + 1) % currentImages.length;
+            renderLightboxImage();
+        });
+
+        zoomBtn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            setZoom(!isZoomed);
+        });
+
+        lbImg.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            setZoom(!isZoomed);
+        });
+
+        closeBtn.addEventListener("click", closePostLightbox);
+        lightbox.addEventListener("click", (ev) => {
+            if (ev.target === lightbox) closePostLightbox();
+        });
+        document.addEventListener("keydown", (ev) => {
+            if (!lightbox.classList.contains("active")) return;
+            if (ev.key === "Escape") closePostLightbox();
+            if (ev.key === "ArrowLeft" && currentImages.length > 1) {
+                currentIdx = (currentIdx - 1 + currentImages.length) % currentImages.length;
+                renderLightboxImage();
+            }
+            if (ev.key === "ArrowRight" && currentImages.length > 1) {
+                currentIdx = (currentIdx + 1) % currentImages.length;
+                renderLightboxImage();
+            }
+        });
+
         async function caricaPostBacheca() {
             const container = document.getElementById("bacheca-container");
             try {
                 const q = query(collection(db, "bacheca"), orderBy("dataCreazione", "desc"));
                 const snap = await getDocs(q);
+                container.innerHTML = "";
+
+                if (snap.empty) {
+                    container.innerHTML = "<p style='color:#64748b;'>Nessun post presente nella bacheca. Pubblica un nuovo pezzo dall'Area Admin.</p>";
+                    return;
+                }
+
                 snap.forEach((docSnap) => {
                     const d = docSnap.data();
-                    const titolo = d.titolo || d.Titolo || 'Senza titolo';
-                    const categoria = d.categoria || d.Categoria || 'Realizzazione';
-                    const descrizione = d.descrizione || d.Descrizione || '';
-                    const materiale = d.materiale || d.Materiale || '';
-                    const layer = d.layer || d.Layer || '';
+                    const titolo = d.titolo || d.Titolo || "Senza titolo";
+                    const categoria = d.categoria || d.Categoria || "Realizzazione";
+                    const descrizione = d.descrizione || d.Descrizione || "";
+                    const materiale = d.materiale || d.Materiale || "";
+                    const layer = d.layer || d.Layer || "";
                     const listaImg = Array.isArray(d.immagini) && d.immagini.length ? d.immagini : (d.immagineUrl ? [d.immagineUrl] : []);
-                    const valide = listaImg.filter(u => typeof u === 'string' && u.trim() && u.trim().toLowerCase() !== 'true');
+                    const valide = listaImg.filter(u => typeof u === "string" && u.trim() && u.trim().toLowerCase() !== "true");
+
+                    const postData = { titolo, descrizione, immagini: valide };
 
                     const article = document.createElement("article");
-                    article.className = "card";
+                    article.className = "card bacheca-card-clickable";
                     const tags = [];
                     if (materiale) tags.push(`<span class="meta-tag">Materiale: ${materiale}</span>`);
                     if (layer) tags.push(`<span class="meta-tag">${layer}</span>`);
 
                     const galleryHtml = valide.length > 1
-                        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;">${valide.map(u => `<img src="${u}" alt="${titolo}" style="height:110px;margin:0;" onerror="this.style.display='none'">`).join('')}</div>`
-                        : (valide.length === 1 ? `<img src="${valide[0]}" alt="${titolo}" onerror="this.style.display='none'">` : '');
+                        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;">${valide.map((u, idx) => `<img src="${u}" alt="${titolo}" data-img-idx="${idx}" style="height:110px;margin:0;" onerror="this.style.display='none'">`).join("")}</div>`
+                        : (valide.length === 1 ? `<img src="${valide[0]}" alt="${titolo}" data-img-idx="0" onerror="this.style.display='none'">` : "");
 
                     article.innerHTML = `
                         <div>
@@ -153,12 +403,21 @@
                             <h3>${titolo}</h3>
                             <p>${descrizione}</p>
                         </div>
-                        ${tags.length ? `<div class="meta-tags">${tags.join('')}</div>` : ''}
+                        ${tags.length ? `<div class="meta-tags">${tags.join("")}</div>` : ""}
                     `;
-                    container.prepend(article);
+
+                    article.addEventListener("click", (ev) => {
+                        if (!valide.length) return;
+                        const imgEl = ev.target.closest("img[data-img-idx]");
+                        const idx = imgEl ? parseInt(imgEl.getAttribute("data-img-idx"), 10) || 0 : 0;
+                        openPostLightbox(postData, idx);
+                    });
+
+                    container.appendChild(article);
                 });
             } catch (err) {
                 console.error("Errore caricamento bacheca:", err);
+                container.innerHTML = "<p style='color:#d73a49;'>Errore durante il caricamento della bacheca.</p>";
             }
         }
 
