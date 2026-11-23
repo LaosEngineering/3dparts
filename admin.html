@@ -631,8 +631,9 @@
                 document.getElementById("bachecaPreviewBox").innerHTML = "";
                 caricaPostAdmin("bacheca", "lista-bacheca-admin");
             } catch (err) {
-                console.error(err);
-                stato.textContent = "Errore durante il salvataggio su Firebase.";
+                console.error("Errore salvataggio Firebase:", err);
+                const msg = err && err.message ? err.message : String(err);
+                stato.textContent = "Errore durante il salvataggio su Firebase: " + msg;
                 stato.style.color = "#d73a49";
             } finally {
                 btn.disabled = false;
@@ -679,8 +680,9 @@
                 document.getElementById("macroPreviewBox").innerHTML = "";
                 caricaPostAdmin("macro", "lista-macro-admin");
             } catch (err) {
-                console.error(err);
-                stato.textContent = "Errore durante il salvataggio su Firebase.";
+                console.error("Errore salvataggio Firebase:", err);
+                const msg = err && err.message ? err.message : String(err);
+                stato.textContent = "Errore durante il salvataggio su Firebase: " + msg;
                 stato.style.color = "#d73a49";
             } finally {
                 btn.disabled = false;
