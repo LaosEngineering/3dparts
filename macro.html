@@ -15,9 +15,9 @@
                 <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13.5px;">Progettazione CAD 2D & Stampe 3D Personalizzate</p>
             </div>
             <div class="header-actions">
-            	<button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
-            	<a href="admin.html" class="admin-btn">Area Admin</a>
-        	</div>
+                <button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
+                <a href="admin.html" class="admin-btn">Area Admin</a>
+            </div>
         </div>
 
         <nav class="nav-tabs" aria-label="Pagine del sito">
@@ -32,7 +32,7 @@
             <h2>Vetrina Foto Macro</h2>
             <p class="section-subtitle">Dettagli ravvicinati sulla precisione di estrusione, l'uniformità dei layer e la finitura superficiale dei materiali. Clicca su una foto per ingrandirla.</p>
             
-            <div class="macro-grid">
+            <div id="macro-container" class="macro-grid">
                 <div class="macro-card" data-title="Dettaglio Layer Lines 0.12mm su PLA+ Seta" data-tech="Ottica Macro 90mm • Ugello 0.4mm • Temp 210°C">
                     <img src="https://images.unsplash.com/photo-1631541909061-71e349d1f203?auto=format&fit=crop&w=800&q=85" alt="Macro layer lines stampa 3D">
                     <div class="macro-overlay">
@@ -107,6 +107,7 @@
         </div>
     </div>
 
+    <script src="theme.js"></script>
     <script>
         (function() {
             const lightbox = document.getElementById('macroLightbox');
@@ -115,15 +116,19 @@
             const lightboxTech = document.getElementById('lightboxTech');
             const closeLightboxBtn = document.getElementById('closeLightboxBtn');
 
-            document.querySelectorAll('.macro-card').forEach(card => {
+            window.bindMacroLightbox = function(card) {
+                if (!card || card.dataset.lightboxBound) return;
+                card.dataset.lightboxBound = "1";
                 card.addEventListener('click', () => {
                     const img = card.querySelector('img');
-                    lightboxImg.src = img.src;
-                    lightboxTitle.textContent = card.getAttribute('data-title');
-                    lightboxTech.textContent = card.getAttribute('data-tech');
+                    lightboxImg.src = img ? img.src : '';
+                    lightboxTitle.textContent = card.getAttribute('data-title') || '';
+                    lightboxTech.textContent = card.getAttribute('data-tech') || '';
                     lightbox.classList.add('active');
                 });
-            });
+            };
+
+            document.querySelectorAll('.macro-card').forEach(window.bindMacroLightbox);
 
             closeLightboxBtn.addEventListener('click', () => lightbox.classList.remove('active'));
             lightbox.addEventListener('click', (e) => {
@@ -133,6 +138,54 @@
                 if (e.key === 'Escape') lightbox.classList.remove('active');
             });
         })();
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUaNJ02DAZZd3FOIu0fBuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function caricaPostMacro() {
+            const container = document.getElementById("macro-container");
+            try {
+                const q = query(collection(db, "macro"), orderBy("dataCreazione", "desc"));
+                const snap = await getDocs(q);
+                snap.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    const titolo = d.titolo || d.Titolo || "Dettaglio Macro";
+                    const tech = d.tech || d.Tech || d.Descrizione || "Ottica Macro";
+                    const imgUrl = (typeof d.immagineUrl === 'string' && d.immagineUrl.trim() && d.immagineUrl.trim().toLowerCase() !== 'true') ? d.immagineUrl.trim() : '';
+                    if (!imgUrl) return;
+                    const card = document.createElement("div");
+                    card.className = "macro-card";
+                    card.setAttribute("data-title", titolo);
+                    card.setAttribute("data-tech", tech);
+                    card.innerHTML = `
+                        <img src="${imgUrl}" alt="${titolo}" onerror="this.style.display='none'">
+                        <div class="macro-overlay">
+                            <h4>${titolo}</h4>
+                            <span>${tech}</span>
+                        </div>
+                    `;
+                    container.prepend(card);
+                    if (window.bindMacroLightbox) window.bindMacroLightbox(card);
+                });
+            } catch (err) {
+                console.error("Errore caricamento foto macro:", err);
+            }
+        }
+
+        caricaPostMacro();
     </script>
 
 </body>

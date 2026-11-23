@@ -651,6 +651,8 @@
                             </p>
                         </div>
                     </div>
+
+
                     <button id="richiediCadBtn" class="btn-primary">
                         Richiedi Consulenza CAD
                     </button>
@@ -1008,7 +1010,6 @@
             });
             aggiornaDescrizioneCad();
 
-            dimsToggle.addEventListener('change', (e) => { state.showDims = e.target.checked; });
 
             let width, height;
             function resizeCanvas() {
@@ -1028,7 +1029,7 @@
                 for (let x = cx % major; x < width; x += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
                 for (let y = cy % major; y < height; y += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
 
-                if (state.showDims) {
+                if (true) {
                     ctx.save();
                     ctx.setLineDash([8, 4, 2, 4]);
                     ctx.strokeStyle = pal.axis;
@@ -1094,7 +1095,7 @@
             }
 
             function drawDimensions(cx, cy, alpha, pal) {
-                if (!state.showDims || alpha <= 0) return;
+                if (alpha <= 0) return;
                 ctx.save();
                 ctx.globalAlpha = alpha;
                 ctx.strokeStyle = pal.dimColor;
