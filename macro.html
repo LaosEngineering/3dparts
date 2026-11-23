@@ -3,34 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laos Engineering / 3DParts - Vetrina Foto Macro</title>
+    <title>Foto macro | Laos Engineering / 3DParts</title>
+    <meta name="description" content="Dettagli ravvicinati su layer, riempimenti e finiture superficiali dei pezzi stampati in 3D.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
         <div class="header-content">
-            <div>
-                <h1 style="margin: 0; font-size: 23px; letter-spacing: 0.5px;">Laos Engineering / 3DParts</h1>
-                <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13.5px;">Progettazione CAD 2D & Stampe 3D Personalizzate</p>
-            </div>
+            <a class="brand" href="index.html" aria-label="Laos Engineering / 3DParts, home">
+                <svg class="brand-mark" viewBox="0 0 38 38" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="32" height="32" rx="2"/><path d="M12 10v18h15"/><path d="M12 10l-3 3m3-3l3 3M27 28l-3-3m3 3l-3 3" stroke-width="1.5"/></svg>
+                <span class="brand-text"><strong>Laos Engineering / 3DParts</strong><span>Progettazione CAD e stampa 3D su misura</span></span>
+            </a>
             <div class="header-actions">
-                <button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
-                <a href="admin.html" class="admin-btn">Area Admin</a>
+                <button id="themeToggleBtn" class="theme-btn" type="button">Tema chiaro</button>
+                <a href="admin.html" class="admin-btn">Area admin</a>
+                <a href="index.html#sezione-contatti" class="header-cta">Richiedi preventivo</a>
             </div>
         </div>
-
         <nav class="nav-tabs" aria-label="Pagine del sito">
-            <a href="index.html" class="tab-link">Servizi 2D & 3D</a>
-            <a href="bacheca.html" class="tab-link">Bacheca Pezzi Realizzati</a>
-            <a href="macro.html" class="tab-link active">Vetrina Foto Macro</a>
+            <a href="index.html" class="tab-link">Servizi</a>
+            <a href="bacheca.html" class="tab-link">Pezzi realizzati</a>
+            <a href="macro.html" class="tab-link active" aria-current="page">Foto macro</a>
         </nav>
     </header>
 
     <main>
         <section>
-            <h2>Vetrina Foto Macro</h2>
-            <p class="section-subtitle">Dettagli ravvicinati sulla precisione di estrusione, l'uniformità dei layer e la finitura superficiale dei materiali. Clicca su una foto per ingrandirla.</p>
+            <h2>Foto macro</h2>
+            <p class="section-subtitle">Dettagli ravvicinati su layer, riempimenti e finiture dei materiali: così si vede la precisione di estrusione. Tocca una foto per ingrandirla.</p>
             
             <div id="macro-container" class="macro-grid">
                 <div class="macro-card" data-title="Dettaglio Layer Lines 0.12mm su PLA+ Seta" data-tech="Ottica Macro 90mm • Ugello 0.4mm • Temp 210°C">
@@ -65,6 +69,10 @@
                     </div>
                 </div>
             </div>
+            <div class="closing-cta">
+                <p>Hai un progetto simile? Raccontacelo e ti inviamo un preventivo.</p>
+                <a href="index.html#sezione-contatti" class="btn-primary">Richiedi un preventivo</a>
+            </div>
         </section>
     </main>
 
@@ -72,25 +80,22 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>Laos Engineering / 3DParts</h4>
-                <p>Servizi professionali di progettazione CAD 2D/3D, prototipazione rapida e produzione di componenti tecnici su misura.</p>
+                <p>Progettazione CAD 2D e 3D, prototipazione rapida e produzione di componenti tecnici su misura.</p>
             </div>
             <div class="footer-col">
-                <h4>Contatti Diretti</h4>
-                <a href="mailto:info@laosengineering.it">Email: info@laosengineering.it</a>
-                <a href="tel:+390964000000">Tel / WhatsApp: +39 0964 000 000</a>
-                <p>Sede: Siderno (RC), Calabria - Italia</p>
+                <h4>Contatti</h4>
+                <a href="mailto:info@laosengineering.it">info@laosengineering.it</a>
+                <a href="tel:+390964000000">+39 0964 000 000 (telefono e WhatsApp)</a>
+                <p>Siderno (RC), Calabria</p>
             </div>
             <div class="footer-col">
-                <h4>Orari Laboratorio</h4>
-                <p>Lun – Ven: 09:00 – 13:00 / 15:00 – 19:00</p>
-                <p>Sabato: Su appuntamento</p>
-                <p>Spedizioni in tutta Italia in 24/48h</p>
+                <h4>Laboratorio</h4>
+                <p>Lunedì–venerdì: 09:00–13:00 e 15:00–19:00</p>
+                <p>Sabato: su appuntamento</p>
+                <p>Spedizioni in tutta Italia in 24/48 ore</p>
             </div>
         </div>
-        <div class="footer-bottom">
-            <span>&copy; 2026 Laos Engineering / 3DParts. Tutti i diritti riservati.</span>
-            <span>Progettazione CAD & Stampa 3D</span>
-        </div>
+        <div class="footer-bottom">&copy; 2026 Laos Engineering / 3DParts. Tutti i diritti riservati.</div>
     </footer>
 
     <!-- Lightbox Foto Macro -->
@@ -99,8 +104,8 @@
             <img id="lightboxImg" src="" alt="Dettaglio Macro">
             <div class="lightbox-caption">
                 <div>
-                    <h4 id="lightboxTitle" style="margin:0 0 4px 0; color:#fff;"></h4>
-                    <span id="lightboxTech" style="font-family:monospace; font-size:12.5px; color:#38bdf8;"></span>
+                    <h4 id="lightboxTitle" style="margin:0 0 4px 0;"></h4>
+                    <span id="lightboxTech" style="font-size:13px; color:var(--accent);"></span>
                 </div>
                 <button id="closeLightboxBtn" class="close-btn">&times;</button>
             </div>
