@@ -32,7 +32,7 @@
             <h2>Vetrina Foto Macro</h2>
             <p class="section-subtitle">Dettagli ravvicinati sulla precisione di estrusione, l'uniformità dei layer e la finitura superficiale dei materiali. Clicca su una foto per ingrandirla.</p>
             
-            <div class="macro-grid">
+            <div id="macro-container" class="macro-grid">
                 <div class="macro-card" data-title="Dettaglio Layer Lines 0.12mm su PLA+ Seta" data-tech="Ottica Macro 90mm • Ugello 0.4mm • Temp 210°C">
                     <img src="https://images.unsplash.com/photo-1631541909061-71e349d1f203?auto=format&fit=crop&w=800&q=85" alt="Macro layer lines stampa 3D">
                     <div class="macro-overlay">
@@ -116,15 +116,19 @@
             const lightboxTech = document.getElementById('lightboxTech');
             const closeLightboxBtn = document.getElementById('closeLightboxBtn');
 
-            document.querySelectorAll('.macro-card').forEach(card => {
+            window.bindMacroLightbox = function(card) {
+                if (!card || card.dataset.lightboxBound) return;
+                card.dataset.lightboxBound = "1";
                 card.addEventListener('click', () => {
                     const img = card.querySelector('img');
-                    lightboxImg.src = img.src;
-                    lightboxTitle.textContent = card.getAttribute('data-title');
-                    lightboxTech.textContent = card.getAttribute('data-tech');
+                    lightboxImg.src = img ? img.src : '';
+                    lightboxTitle.textContent = card.getAttribute('data-title') || '';
+                    lightboxTech.textContent = card.getAttribute('data-tech') || '';
                     lightbox.classList.add('active');
                 });
-            });
+            };
+
+            document.querySelectorAll('.macro-card').forEach(window.bindMacroLightbox);
 
             closeLightboxBtn.addEventListener('click', () => lightbox.classList.remove('active'));
             lightbox.addEventListener('click', (e) => {
@@ -134,6 +138,52 @@
                 if (e.key === 'Escape') lightbox.classList.remove('active');
             });
         })();
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function caricaPostMacro() {
+            const container = document.getElementById("macro-container");
+            try {
+                const q = query(collection(db, "macro"), orderBy("dataCreazione", "desc"));
+                const snap = await getDocs(q);
+                snap.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    const titolo = d.titolo || "Dettaglio Macro";
+                    const tech = d.tech || "Ottica Macro";
+                    const card = document.createElement("div");
+                    card.className = "macro-card";
+                    card.setAttribute("data-title", titolo);
+                    card.setAttribute("data-tech", tech);
+                    card.innerHTML = `
+                        <img src="${d.immagineUrl || ''}" alt="${titolo}" onerror="this.style.display='none'">
+                        <div class="macro-overlay">
+                            <h4>${titolo}</h4>
+                            <span>${tech}</span>
+                        </div>
+                    `;
+                    container.prepend(card);
+                    if (window.bindMacroLightbox) window.bindMacroLightbox(card);
+                });
+            } catch (err) {
+                console.error("Errore caricamento foto macro:", err);
+            }
+        }
+
+        caricaPostMacro();
     </script>
 
 </body>

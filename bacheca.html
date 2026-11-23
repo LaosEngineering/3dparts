@@ -30,9 +30,9 @@
     <main>
         <section>
             <h2>Bacheca Pezzi Realizzati</h2>
-            <p class="section-subtitle">Raccolta dimostrativa di componenti funzionali, prototipi meccanici e modelli stampati nel nostro laboratorio.</p>
+            <p class="section-subtitle">Raccolta di componenti funzionali, prototipi meccanici e modelli stampati nel nostro laboratorio.</p>
             
-            <div class="griglia-prodotti">
+            <div id="bacheca-container" class="griglia-prodotti">
                 <article class="card">
                     <div>
                         <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=700&q=80" alt="Ingranaggio elicoidale">
@@ -105,5 +105,52 @@
     </footer>
 
     <script src="theme.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyChYUANJ02DAZZd3FOiu0Fbuv8KeooVW98",
+            authDomain: "laosbackend.firebaseapp.com",
+            projectId: "laosbackend",
+            storageBucket: "laosbackend.firebasestorage.app",
+            messagingSenderId: "971024190529",
+            appId: "1:971024190529:web:2408cf4b0c86a6d924cac0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function caricaPostBacheca() {
+            const container = document.getElementById("bacheca-container");
+            try {
+                const q = query(collection(db, "bacheca"), orderBy("dataCreazione", "desc"));
+                const snap = await getDocs(q);
+                snap.forEach((docSnap) => {
+                    const d = docSnap.data();
+                    const article = document.createElement("article");
+                    article.className = "card";
+                    const tags = [];
+                    if (d.materiale) tags.push(`<span class="meta-tag">Materiale: ${d.materiale}</span>`);
+                    if (d.layer) tags.push(`<span class="meta-tag">${d.layer}</span>`);
+
+                    article.innerHTML = `
+                        <div>
+                            ${d.immagineUrl ? `<img src="${d.immagineUrl}" alt="${d.titolo || 'Pezzo realizzato'}" onerror="this.style.display='none'">` : ''}
+                            <span class="badge">${d.categoria || 'Realizzazione'}</span>
+                            <h3>${d.titolo || 'Senza titolo'}</h3>
+                            <p>${d.descrizione || ''}</p>
+                        </div>
+                        ${tags.length ? `<div class="meta-tags">${tags.join('')}</div>` : ''}
+                    `;
+                    container.prepend(article);
+                });
+            } catch (err) {
+                console.error("Errore caricamento bacheca:", err);
+            }
+        }
+
+        caricaPostBacheca();
+    </script>
 </body>
 </html>
