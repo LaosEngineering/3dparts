@@ -1,3 +1,18 @@
+Ecco la soluzione aggiornata: ho rimosso l'animazione invasiva a tutto schermo sostituendola con una griglia CAD statica super pulita, e ho trasformato la card **Prototipazione 3D** (e in generale le card del catalogo) in un elemento cliccabile che apre un **box modale interattivo (Slicer Preview)** con un singolo oggetto 3D ad alta definizione.
+
+### Novità integrate nel codice:
+
+1. **Box Modale Interattivo al click:** Cliccando sulla card *"Prototipazione 3D"* (o su qualsiasi card del catalogo che contiene "prototipazione" / prima card), si apre un elegante pannello tecnico in sovraimpressione.
+2. **Singolo Oggetto 3D Ruotabile + Controlli Live:**
+* **Tipo di Oggetto:** Selettore per cambiare tra *Ingranaggio Meccanico*, *Vaso Parametrico*, *Elica Aerodinamica* e *Supporto Strutturale*.
+* **Velocità di Estrusione:** Slider per rallentare fino al fermo immagine o velocizzare la stampa.
+* **Risoluzione Layer (Layer Lines):** Slider per aumentare o ridurre il numero di strati (es. da 0.3 mm bozza rapida a 0.1 mm alta precisione).
+* **Interazione Mouse/Touch:** Puoi trascinare l'oggetto nel box per ruotarlo manualmente a 360°.
+
+
+3. **Descrizioni Tecniche:** Sotto al visualizzatore trovi le specifiche del servizio di prototipazione (tolleranze, materiali disponibili come PLA+, PETG, ASA, Nylon Carbonio e tempi di consegna), con un pulsante rapido per precompilare il modulo di richiesta.
+
+```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -10,8 +25,8 @@
             --bg-dark: #070b14;
             --accent-cyan: #0ea5e9;
             --accent-blue: #0366d6;
-            --glass-bg: rgba(13, 20, 36, 0.78);
-            --glass-border: rgba(56, 189, 248, 0.2);
+            --glass-bg: rgba(15, 23, 42, 0.82);
+            --glass-border: rgba(56, 189, 248, 0.22);
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
         }
@@ -21,33 +36,24 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-dark);
+            /* Griglia CAD sottile e statica sullo sfondo */
+            background-image: 
+                linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
             color: var(--text-main);
             overflow-x: hidden;
         }
 
-        /* Canvas Background Dinamico a tutto schermo */
-        #print-bg-canvas {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Elevazione contenuti sopra il background */
-        header, main {
-            position: relative;
-            z-index: 10;
-        }
-
         header {
-            background: rgba(10, 16, 30, 0.85);
+            background: rgba(10, 16, 30, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--glass-border);
             color: white;
             padding: 20px 0;
+            position: relative;
+            z-index: 10;
         }
 
         .header-content {
@@ -80,6 +86,8 @@
             max-width: 1000px;
             margin: 40px auto;
             padding: 0 20px 60px 20px;
+            position: relative;
+            z-index: 10;
         }
 
         h2 {
@@ -101,7 +109,6 @@
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
             overflow: hidden;
@@ -110,12 +117,17 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.25s ease, border-color 0.25s ease;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card.clickable {
+            cursor: pointer;
         }
 
         .card:hover {
             transform: translateY(-4px);
             border-color: var(--accent-cyan);
+            box-shadow: 0 10px 28px rgba(14, 165, 233, 0.2);
         }
 
         .card img {
@@ -139,6 +151,16 @@
             margin: 0;
         }
 
+        .card-action-hint {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #38bdf8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .badge {
             background-color: rgba(14, 165, 233, 0.18);
             border: 1px solid var(--accent-cyan);
@@ -155,7 +177,6 @@
         form {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             padding: 30px;
             border-radius: 10px;
@@ -167,13 +188,13 @@
             margin: 20px auto;
         }
 
-        input, textarea {
-            background: rgba(7, 11, 20, 0.8);
+        input, textarea, select {
+            background: rgba(7, 11, 20, 0.85);
             border: 1px solid rgba(148, 163, 184, 0.28);
             color: #ffffff;
             padding: 12px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             font-family: inherit;
             transition: border-color 0.3s;
         }
@@ -182,25 +203,25 @@
             color: #64748b;
         }
 
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--accent-cyan);
             box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
         }
 
-        button[type="submit"] {
+        button[type="submit"], .btn-primary {
             background-color: var(--accent-blue);
             color: white;
             border: 1px solid rgba(56, 189, 248, 0.4);
-            padding: 12px;
+            padding: 12px 18px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        button[type="submit"]:hover {
+        button[type="submit"]:hover, .btn-primary:hover {
             background-color: var(--accent-cyan);
             box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
         }
@@ -210,12 +231,218 @@
             font-weight: bold;
             margin-top: 10px;
         }
+
+        /* ================= BOX MODALE PROTOTIPAZIONE 3D ================= */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: #0c1324;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 880px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(14, 165, 233, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #cbd5e1;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #ffffff;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 24px;
+            padding: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .viewer-wrapper {
+            position: relative;
+            background: radial-gradient(circle at center, #111c33 0%, #060a14 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 340px;
+            cursor: grab;
+        }
+
+        .viewer-wrapper:active {
+            cursor: grabbing;
+        }
+
+        #slicer-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .viewer-hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            font-family: monospace;
+            font-size: 12px;
+            color: #38bdf8;
+        }
+
+        .viewer-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(7, 11, 20, 0.75);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group label {
+            font-size: 13px;
+            color: #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+
+        .control-group label span {
+            color: #38bdf8;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 4px;
+            padding: 0;
+            border: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+        }
+
+        .service-description {
+            background: rgba(15, 23, 42, 0.7);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 14px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: #cbd5e1;
+        }
+
+        .service-description strong {
+            color: #ffffff;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .specs-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .spec-pill {
+            font-size: 11px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: #7dd3fc;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-
-    <!-- Background Animato Multi-Parti a Tutta Pagina -->
-    <canvas id="print-bg-canvas"></canvas>
 
     <header>
         <div class="header-content">
@@ -239,7 +466,7 @@
         </section>
 
         <!-- Sezione Form Contatti collegata a Firebase -->
-        <section>
+        <section id="sezione-contatti">
             <h2>Commissiona Progetto</h2>
             <form id="formContatto">
                 <input type="text" id="nome" placeholder="Il tuo Nome o Azienda" required>
@@ -251,257 +478,375 @@
         </section>
     </main>
 
-    <!-- Script Animazione Background 3D Slicer Multi-Parti -->
+    <!-- BOX MODALE INTERATTIVO: PROTOTIPAZIONE 3D -->
+    <div id="protoModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>
+                    <span class="badge" style="margin:0;">Simulatore Slicer</span>
+                    Prototipazione Rapida 3D
+                </h3>
+                <button id="closeModalBtn" class="close-btn" title="Chiudi">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Colonna Sinistra: Canvas 3D Singolo Oggetto -->
+                <div>
+                    <div id="viewerWrapper" class="viewer-wrapper">
+                        <canvas id="slicer-canvas"></canvas>
+                        <div class="viewer-hud">
+                            <span id="hud-layer">LAYER: 0 / 40</span>
+                            <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
+                        </div>
+                        <div class="viewer-hint">Trascina per ruotare il modello 3D</div>
+                    </div>
+
+                    <div class="service-description" style="margin-top: 16px;">
+                        <strong>Dall'idea al pezzo fisico in 24/48 ore</strong>
+                        Realizziamo prototipi funzionali, componenti meccanici su misura e piccole serie con tecnologie FDM e MSLA ad alta precisione. Ottimizziamo l'orientamento e il riempimento per garantire massima resistenza meccanica e finitura estetica.
+                        <div class="specs-pills">
+                            <span class="spec-pill">Tolleranza ±0.15 mm</span>
+                            <span class="spec-pill">PLA+ / PETG / ASA / PA-CF</span>
+                            <span class="spec-pill">Consulenza CAD inclusa</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colonna Destra: Controlli Slicer & Azione -->
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <label for="modelSelect">Tipo di Oggetto 3D</label>
+                        <select id="modelSelect">
+                            <option value="gear">Ingranaggio Meccanico (12 denti)</option>
+                            <option value="vase">Vaso Parametrico Ritorto</option>
+                            <option value="helix">Elica Aerodinamica</option>
+                            <option value="bracket">Cilindro Scanalato Industriale</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speedSlider">
+                            Velocità di Stampa
+                            <span id="speedValue">Lenta (0.5x)</span>
+                        </label>
+                        <input type="range" id="speedSlider" min="0" max="2" step="0.1" value="0.5">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="layersSlider">
+                            Densità Layer Lines
+                            <span id="layersValue">42 strati (0.20mm)</span>
+                        </label>
+                        <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
+                    </div>
+
+                    <div class="service-description">
+                        <strong>Come funziona la stampa a strati?</strong>
+                        Ogni modello viene suddiviso (<em>slicing</em>) in decine o centinaia di sezioni orizzontali. Riducendo l'altezza del singolo strato si ottiene una superficie più liscia e dettagliata; aumentandola si privilegia la rapidità di prototipazione.
+                    </div>
+
+                    <button id="richiediProtoBtn" class="btn-primary" style="margin-top: auto;">
+                        Richiedi Preventivo per questo Servizio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Simulatore 3D nel Box Modale -->
     <script>
         (function() {
-            const canvas = document.getElementById('print-bg-canvas');
+            const modal = document.getElementById('protoModal');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const viewerWrapper = document.getElementById('viewerWrapper');
+            const canvas = document.getElementById('slicer-canvas');
             const ctx = canvas.getContext('2d');
 
-            let width, height, dpr;
-            let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+            const modelSelect = document.getElementById('modelSelect');
+            const speedSlider = document.getElementById('speedSlider');
+            const speedValue = document.getElementById('speedValue');
+            const layersSlider = document.getElementById('layersSlider');
+            const layersValue = document.getElementById('layersValue');
+            const hudLayer = document.getElementById('hud-layer');
+            const hudRes = document.getElementById('hud-res');
+            const richiediProtoBtn = document.getElementById('richiediProtoBtn');
+
+            let animFrameId = null;
+            let isOpen = false;
             let time = 0;
 
-            // Configurazione più lenta, ampia e discreta
-            const config = {
-                printSpeed: 0.065,      // Velocità di stampa molto rilassata
-                rotationSpeed: 0.035,   // Rotazione leggera della visuale
-                baseOpacity: 0.22       // Opacità soffusa per non disturbare il testo
+            // Stato configurabile dall'utente
+            const state = {
+                model: 'gear',
+                speed: 0.5,
+                totalLayers: 42,
+                rotY: 0.6,
+                tiltX: 0.42,
+                isDragging: false,
+                lastMouseX: 0,
+                lastMouseY: 0
             };
 
-            // 7 Parti distribuite su tutto il piano di stampa
-            const parts = [
-                { type: 'gear',     nx: -0.36, nz: -0.25, radius: 68, height: 85,  layers: 26, phase: 0.0 },
-                { type: 'vase',     nx:  0.34, nz: -0.22, radius: 62, height: 125, layers: 34, phase: 0.35 },
-                { type: 'cube',     nx: -0.32, nz:  0.26, radius: 58, height: 95,  layers: 28, phase: 0.65 },
-                { type: 'cylinder', nx:  0.35, nz:  0.24, radius: 64, height: 105, layers: 30, phase: 0.15 },
-                { type: 'helix',    nx:  0.00, nz: -0.34, radius: 52, height: 115, layers: 32, phase: 0.50 },
-                { type: 'prism',    nx: -0.02, nz:  0.32, radius: 60, height: 90,  layers: 26, phase: 0.80 },
-                { type: 'turbine',  nx:  0.00, nz:  0.00, radius: 74, height: 110, layers: 30, phase: 0.25 }
-            ];
+            // Funzione globale per aprire il box
+            window.apriBoxPrototipazione = function() {
+                modal.classList.add('active');
+                isOpen = true;
+                resizeCanvas();
+                if (!animFrameId) animate();
+            };
 
-            function resize() {
-                dpr = Math.min(window.devicePixelRatio || 1, 2);
-                width = window.innerWidth;
-                height = window.innerHeight;
+            function chiudiModal() {
+                modal.classList.remove('active');
+                isOpen = false;
+                if (animFrameId) {
+                    cancelAnimationFrame(animFrameId);
+                    animFrameId = null;
+                }
+            }
+
+            closeBtn.addEventListener('click', chiudiModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) chiudiModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isOpen) chiudiModal();
+            });
+
+            // Pulsante per compilare automaticamente il modulo contatti
+            richiediProtoBtn.addEventListener('click', () => {
+                chiudiModal();
+                const msgField = document.getElementById('messaggio');
+                const tipoModello = modelSelect.options[modelSelect.selectedIndex].text;
+                msgField.value = `Salve, vorrei richiedere informazioni/preventivo per il servizio di Prototipazione 3D (esempio configurato: ${tipoModello}, ${state.totalLayers} layer).`;
+                document.getElementById('sezione-contatti').scrollIntoView({ behavior: 'smooth' });
+                msgField.focus();
+            });
+
+            // Controlli UI
+            modelSelect.addEventListener('change', (e) => {
+                state.model = e.target.value;
+            });
+
+            speedSlider.addEventListener('input', (e) => {
+                state.speed = parseFloat(e.target.value);
+                if (state.speed === 0) speedValue.textContent = 'In pausa (0x)';
+                else if (state.speed < 0.8) speedValue.textContent = `Lenta (${state.speed.toFixed(1)}x)`;
+                else if (state.speed <= 1.2) speedValue.textContent = `Normale (${state.speed.toFixed(1)}x)`;
+                else speedValue.textContent = `Rapida (${state.speed.toFixed(1)}x)`;
+            });
+
+            layersSlider.addEventListener('input', (e) => {
+                state.totalLayers = parseInt(e.target.value, 10);
+                const mm = (8.4 / state.totalLayers).toFixed(2);
+                layersValue.textContent = `${state.totalLayers} strati (${mm}mm)`;
+                hudRes.textContent = `ALTEZZA STRATO: ${mm}mm`;
+            });
+
+            // Rotazione manuale con Mouse e Touch
+            viewerWrapper.addEventListener('mousedown', (e) => {
+                state.isDragging = true;
+                state.lastMouseX = e.clientX;
+                state.lastMouseY = e.clientY;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!state.isDragging || !isOpen) return;
+                const dx = e.clientX - state.lastMouseX;
+                const dy = e.clientY - state.lastMouseY;
+                state.rotY += dx * 0.01;
+                state.tiltX = Math.max(0.1, Math.min(1.1, state.tiltX + dy * 0.008));
+                state.lastMouseX = e.clientX;
+                state.lastMouseY = e.clientY;
+            });
+            window.addEventListener('mouseup', () => {
+                state.isDragging = false;
+            });
+
+            let width, height;
+            function resizeCanvas() {
+                const rect = viewerWrapper.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                width = rect.width;
+                height = rect.height;
                 canvas.width = width * dpr;
                 canvas.height = height * dpr;
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
-
-            window.addEventListener('resize', resize);
-            window.addEventListener('mousemove', (e) => {
-                mouse.targetX = (e.clientX / width - 0.5) * 2;
-                mouse.targetY = (e.clientY / height - 0.5) * 2;
+            window.addEventListener('resize', () => {
+                if (isOpen) resizeCanvas();
             });
-            resize();
 
-            // Proiezione 3D -> 2D centrata su tutto lo schermo
-            function project(x, y, z, rotY, tiltX) {
-                const cosY = Math.cos(rotY);
-                const sinY = Math.sin(rotY);
+            // Proiezione 3D -> 2D centrata nel box
+            function project(x, y, z) {
+                const cosY = Math.cos(state.rotY);
+                const sinY = Math.sin(state.rotY);
                 const rx = x * cosY - z * sinY;
                 const rz = x * sinY + z * cosY;
 
-                const cosX = Math.cos(tiltX);
-                const sinX = Math.sin(tiltX);
+                const cosX = Math.cos(state.tiltX);
+                const sinX = Math.sin(state.tiltX);
                 const ry = y * cosX - rz * sinX;
                 const finalZ = y * sinX + rz * cosX;
 
-                const fov = 950;
-                const scale = fov / (fov + finalZ + 450);
+                const fov = 620;
+                const scale = fov / (fov + finalZ + 320);
 
                 return {
                     x: (width * 0.5) + rx * scale,
-                    y: (height * 0.54) - ry * scale,
-                    scale: scale
+                    y: (height * 0.66) - ry * scale
                 };
             }
 
-            // Genera i punti del profilo per ciascun tipo di parte meccanica
-            function getPartLayerPoints(part, layerIdx, cx, cz) {
-                const progress = layerIdx / part.layers;
-                const y = progress * part.height;
+            // Geometria dei singoli modelli
+            function getModelPoints(layerIdx, totalLayers) {
+                const progress = layerIdx / totalLayers;
+                const totalHeight = 145;
+                const y = progress * totalHeight;
                 const pts = [];
-                let segments = 36;
-
-                if (part.type === 'cube') segments = 4;
-                if (part.type === 'prism') segments = 6;
+                const segments = 60;
+                const baseRadius = 82;
 
                 for (let i = 0; i <= segments; i++) {
-                    const t = i / segments;
-                    const angle = t * Math.PI * 2;
-                    let r = part.radius;
-                    let a = angle;
+                    const angle = (i / segments) * Math.PI * 2;
+                    let r = baseRadius;
 
-                    switch (part.type) {
-                        case 'gear':
-                            // Ingranaggio meccanico a 12 denti
-                            const tooth = Math.sin(angle * 12) > 0 ? 7 : -3;
-                            r = part.radius * 0.85 + tooth;
-                            break;
-                        case 'vase':
-                            // Vaso parametrico ritorto
-                            r = part.radius * (0.72 + 0.28 * Math.sin(progress * Math.PI * 1.3));
-                            r += Math.cos(angle * 6 + progress * 3) * 6;
-                            break;
-                        case 'cube':
-                            // Cubo con leggera torsione (Voronoi/CAD)
-                            a = angle + Math.PI / 4 + progress * 0.35;
-                            r = part.radius * 1.15;
-                            break;
-                        case 'cylinder':
-                            // Cilindro scanalato
-                            r = part.radius * (0.92 + 0.08 * Math.cos(angle * 8));
-                            break;
-                        case 'helix':
-                            // Elica ritorta a 3 lobi
-                            r = part.radius * (0.75 + 0.25 * Math.cos(angle * 3 - progress * Math.PI * 2));
-                            break;
-                        case 'prism':
-                            // Prisma esagonale rastremato
-                            r = part.radius * (1.05 - progress * 0.35);
-                            break;
-                        case 'turbine':
-                            // Girante a pale curve
-                            r = part.radius * (0.8 + 0.22 * Math.sin(angle * 7 + progress * Math.PI * 1.5));
-                            break;
+                    if (state.model === 'gear') {
+                        // Ingranaggio meccanico a 12 denti con foro centrale simulato
+                        const tooth = Math.sin(angle * 12) > 0 ? 11 : -4;
+                        r = baseRadius * 0.85 + tooth;
+                    } else if (state.model === 'vase') {
+                        // Vaso parametrico ritorto
+                        r = baseRadius * (0.72 + 0.3 * Math.sin(progress * Math.PI * 1.35));
+                        r += Math.cos(angle * 8 + progress * Math.PI * 1.2) * 8;
+                    } else if (state.model === 'helix') {
+                        // Elica aerodinamica ritorta
+                        r = baseRadius * (0.68 + 0.32 * Math.cos(angle * 3 - progress * Math.PI * 2.2));
+                    } else if (state.model === 'bracket') {
+                        // Cilindro scanalato con flangia alla base
+                        const flange = progress < 0.18 ? 18 : 0;
+                        r = baseRadius * 0.82 + flange + Math.cos(angle * 10) * 4;
                     }
 
                     pts.push({
-                        x: cx + Math.cos(a) * r,
+                        x: Math.cos(angle) * r,
                         y: y,
-                        z: cz + Math.sin(a) * r
+                        z: Math.sin(angle) * r
                     });
                 }
                 return pts;
             }
 
-            // Disegna la grande griglia CAD su tutta la pagina
-            function drawFullBuildPlate(spreadX, spreadZ, rotY, tiltX) {
-                const step = 75;
-                const maxX = Math.ceil(spreadX / step) * step;
-                const maxZ = Math.ceil(spreadZ / step) * step;
-
+            // Piatto di stampa nel box
+            function drawBuildPlate() {
+                const size = 140;
+                const step = 28;
                 ctx.lineWidth = 1;
 
-                for (let x = -maxX; x <= maxX; x += step) {
-                    const isAxis = x === 0;
-                    ctx.strokeStyle = isAxis ? 'rgba(56, 189, 248, 0.14)' : 'rgba(56, 189, 248, 0.045)';
-                    const p1 = project(x, 0, -maxZ, rotY, tiltX);
-                    const p2 = project(x, 0, maxZ, rotY, tiltX);
+                for (let i = -size; i <= size; i += step) {
+                    ctx.strokeStyle = i === 0 ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.12)';
+                    const p1 = project(-size, 0, i);
+                    const p2 = project(size, 0, i);
                     ctx.beginPath();
                     ctx.moveTo(p1.x, p1.y);
                     ctx.lineTo(p2.x, p2.y);
                     ctx.stroke();
-                }
 
-                for (let z = -maxZ; z <= maxZ; z += step) {
-                    const isAxis = z === 0;
-                    ctx.strokeStyle = isAxis ? 'rgba(56, 189, 248, 0.14)' : 'rgba(56, 189, 248, 0.045)';
-                    const p1 = project(-maxX, 0, z, rotY, tiltX);
-                    const p2 = project(maxX, 0, z, rotY, tiltX);
+                    const p3 = project(i, 0, -size);
+                    const p4 = project(i, 0, size);
                     ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(p2.x, p2.y);
+                    ctx.moveTo(p3.x, p3.y);
+                    ctx.lineTo(p4.x, p4.y);
                     ctx.stroke();
                 }
             }
 
             function animate() {
-                time += 0.016;
-                mouse.x += (mouse.targetX - mouse.x) * 0.03;
-                mouse.y += (mouse.targetY - mouse.y) * 0.03;
+                if (!isOpen) return;
 
-                // Sfondo uniforme scuro e pulito
-                const grad = ctx.createRadialGradient(width * 0.5, height * 0.5, 80, width * 0.5, height * 0.5, Math.max(width, height) * 0.85);
-                grad.addColorStop(0, '#0c1426');
-                grad.addColorStop(1, '#050811');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, width, height);
+                time += 0.016 * state.speed;
+                if (!state.isDragging) {
+                    state.rotY += 0.004; // Rotazione lenta continua
+                }
 
-                // Rotazione molto lenta e parallasse morbida
-                const rotY = Math.sin(time * config.rotationSpeed) * 0.35 + mouse.x * 0.22;
-                const tiltX = 0.48 + mouse.y * 0.08;
+                ctx.clearRect(0, 0, width, height);
+                drawBuildPlate();
 
-                // Adatta l'ampiezza del piatto alle dimensioni della finestra
-                const spreadX = Math.max(width * 0.65, 520);
-                const spreadZ = Math.max(height * 0.55, 380);
+                const cycle = state.totalLayers + 10;
+                const rawProgress = (time * 10) % cycle;
+                const activeLayer = Math.min(Math.floor(rawProgress), state.totalLayers - 1);
+                const layerFrac = rawProgress - Math.floor(rawProgress);
 
-                drawFullBuildPlate(spreadX, spreadZ, rotY, tiltX);
+                hudLayer.textContent = `LAYER: ${activeLayer + 1} / ${state.totalLayers}`;
 
-                // Disegna ciascuna delle 7 parti
-                parts.forEach((part) => {
-                    const cx = part.nx * spreadX;
-                    const cz = part.nz * spreadZ;
+                // 1. Anteprima G-Code wireframe
+                ctx.lineWidth = 0.6;
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+                for (let l = activeLayer + 1; l < state.totalLayers; l += 2) {
+                    const pts = getModelPoints(l, state.totalLayers);
+                    ctx.beginPath();
+                    pts.forEach((pt, idx) => {
+                        const proj = project(pt.x, pt.y, pt.z);
+                        if (idx === 0) ctx.moveTo(proj.x, proj.y);
+                        else ctx.lineTo(proj.x, proj.y);
+                    });
+                    ctx.stroke();
+                }
 
-                    // Ciclo di stampa lento e sfalsato per ogni oggetto
-                    const cycle = part.layers + 14;
-                    const rawProgress = ((time * config.printSpeed * 10) + part.phase * cycle) % cycle;
-                    const activeLayer = Math.min(Math.floor(rawProgress), part.layers - 1);
-                    const layerFrac = rawProgress - Math.floor(rawProgress);
+                // 2. Strati stampati
+                for (let l = 0; l <= activeLayer; l++) {
+                    const pts = getModelPoints(l, state.totalLayers);
+                    const isCurrent = (l === activeLayer && rawProgress < state.totalLayers);
+                    const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
 
-                    // 1. Guida wireframe sottilissima dell'oggetto completo
-                    ctx.lineWidth = 0.6;
-                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.04)';
-                    for (let l = activeLayer + 1; l < part.layers; l += 3) {
-                        const pts = getPartLayerPoints(part, l, cx, cz);
-                        ctx.beginPath();
-                        pts.forEach((pt, idx) => {
-                            const proj = project(pt.x, pt.y, pt.z, rotY, tiltX);
-                            if (idx === 0) ctx.moveTo(proj.x, proj.y);
-                            else ctx.lineTo(proj.x, proj.y);
-                        });
-                        ctx.stroke();
-                    }
-
-                    // 2. Strati stampati
-                    for (let l = 0; l <= activeLayer; l++) {
-                        const pts = getPartLayerPoints(part, l, cx, cz);
-                        const isCurrent = (l === activeLayer && rawProgress < part.layers);
-                        const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
-
-                        // Riempimento interno (infill) discreto ogni 5 strati
-                        if (l % 5 === 0 && !isCurrent && pts.length > 6) {
-                            ctx.strokeStyle = 'rgba(14, 165, 233, 0.06)';
-                            ctx.lineWidth = 0.7;
-                            const pA = project(pts[0].x, pts[0].y, pts[0].z, rotY, tiltX);
-                            const mid = Math.floor(pts.length / 2);
-                            const pB = project(pts[mid].x, pts[mid].y, pts[mid].z, rotY, tiltX);
+                    // Riempimento interno (Infill)
+                    if (l % 4 === 0 && !isCurrent) {
+                        ctx.strokeStyle = 'rgba(14, 165, 233, 0.16)';
+                        ctx.lineWidth = 0.8;
+                        for (let k = 0; k < pts.length; k += 10) {
+                            const pA = project(pts[k].x, pts[k].y, pts[k].z);
+                            const pB = project(pts[(k + 25) % pts.length].x, pts[k].y, pts[(k + 25) % pts.length].z);
                             ctx.beginPath();
                             ctx.moveTo(pA.x, pA.y);
                             ctx.lineTo(pB.x, pB.y);
                             ctx.stroke();
                         }
-
-                        ctx.lineWidth = isCurrent ? 1.5 : 1.0;
-                        ctx.strokeStyle = isCurrent
-                            ? 'rgba(125, 211, 252, 0.55)'
-                            : `rgba(14, 165, 233, ${0.10 + (l / part.layers) * config.baseOpacity})`;
-
-                        ctx.beginPath();
-                        for (let i = 0; i <= maxIdx; i++) {
-                            const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
-                            if (i === 0) ctx.moveTo(proj.x, proj.y);
-                            else ctx.lineTo(proj.x, proj.y);
-
-                            // Punto luminoso delicato dove sta lavorando l'estrusore
-                            if (isCurrent && i === maxIdx) {
-                                ctx.save();
-                                ctx.fillStyle = 'rgba(186, 230, 253, 0.75)';
-                                ctx.beginPath();
-                                ctx.arc(proj.x, proj.y, 2.2, 0, Math.PI * 2);
-                                ctx.fill();
-                                ctx.restore();
-                            }
-                        }
-                        ctx.stroke();
                     }
-                });
 
-                requestAnimationFrame(animate);
+                    ctx.lineWidth = isCurrent ? 2.2 : 1.3;
+                    ctx.strokeStyle = isCurrent
+                        ? '#7dd3fc'
+                        : `rgba(14, 165, 233, ${0.28 + (l / state.totalLayers) * 0.45})`;
+
+                    ctx.beginPath();
+                    for (let i = 0; i <= maxIdx; i++) {
+                        const proj = project(pts[i].x, pts[i].y, pts[i].z);
+                        if (i === 0) ctx.moveTo(proj.x, proj.y);
+                        else ctx.lineTo(proj.x, proj.y);
+
+                        // Estrusore attivo
+                        if (isCurrent && i === maxIdx) {
+                            const nozzleTop = project(pts[i].x, pts[i].y + 110, pts[i].z);
+                            ctx.save();
+                            ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.moveTo(nozzleTop.x, nozzleTop.y);
+                            ctx.lineTo(proj.x, proj.y);
+                            ctx.stroke();
+
+                            ctx.fillStyle = '#ffffff';
+                            ctx.shadowColor = '#38bdf8';
+                            ctx.shadowBlur = 12;
+                            ctx.beginPath();
+                            ctx.arc(proj.x, proj.y, 3.2, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+                    ctx.stroke();
+                }
+
+                animFrameId = requestAnimationFrame(animate);
             }
-
-            animate();
         })();
     </script>
 
@@ -537,19 +882,32 @@
                 container.innerHTML = ""; // Pulisce il testo di caricamento
                 querySnapshot.forEach((doc) => {
                     const item = doc.data();
+                    const titolo = item.Titolo || 'Senza titolo';
+                    const isPrototipazione = titolo.toLowerCase().includes('prototipazione');
+                    
                     const imgTag = item.immagineUrl 
-                        ? `<img src="${item.immagineUrl}" alt="${item.Titolo || 'Prodotto'}" onerror="this.style.display='none'">` 
+                        ? `<img src="${item.immagineUrl}" alt="${titolo}" onerror="this.style.display='none'">` 
                         : '';
-                    container.innerHTML += `
-                        <article class="card">
-                            <div>
-                                ${imgTag}
-                                <span class="badge">${item.Categoria || 'Generale'}</span>
-                                <h3>${item.Titolo || 'Senza titolo'}</h3>
-                                <p>${item.Descrizione || ''}</p>
-                            </div>
-                        </article>
+
+                    const cardEl = document.createElement('article');
+                    cardEl.className = isPrototipazione ? 'card clickable' : 'card';
+                    cardEl.innerHTML = `
+                        <div>
+                            ${imgTag}
+                            <span class="badge">${item.Categoria || 'Generale'}</span>
+                            <h3>${titolo}</h3>
+                            <p>${item.Descrizione || ''}</p>
+                        </div>
+                        ${isPrototipazione ? '<div class="card-action-hint">Clicca per aprire l\'anteprima 3D interattiva &rarr;</div>' : ''}
                     `;
+
+                    if (isPrototipazione) {
+                        cardEl.addEventListener('click', () => {
+                            window.apriBoxPrototipazione();
+                        });
+                    }
+
+                    container.appendChild(cardEl);
                 });
             } catch (errore) {
                 console.error("Errore nel caricamento:", errore);
@@ -586,3 +944,5 @@
     </script>
 </body>
 </html>
+
+```
