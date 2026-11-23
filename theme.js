@@ -8,7 +8,7 @@
     function updateToggleButton() {
         const btn = document.getElementById("themeToggleBtn");
         if (!btn) return;
-        btn.textContent = isLight() ? "Tema scuro" : "Tema chiaro";
+        btn.textContent = isLight() ? "🌙 Tema Scuro" : "☀️ Tema Chiaro";
     }
 
     function applyTheme(mode) {
@@ -52,9 +52,7 @@
         };
     };
 
-    var saved = null;
-    try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
-    applyTheme(saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+    applyTheme(localStorage.getItem(STORAGE_KEY) || "dark");
 
     function attachListeners() {
         updateToggleButton();
@@ -63,7 +61,7 @@
             btn.dataset.themeBound = "1";
             btn.addEventListener("click", () => {
                 const next = isLight() ? "dark" : "light";
-                try { localStorage.setItem(STORAGE_KEY, next); } catch (e) {}
+                localStorage.setItem(STORAGE_KEY, next);
                 applyTheme(next);
             });
         }
