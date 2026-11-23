@@ -10,8 +10,8 @@
             --bg-dark: #070b14;
             --accent-cyan: #0ea5e9;
             --accent-blue: #0366d6;
-            --glass-bg: rgba(15, 23, 42, 0.72);
-            --glass-border: rgba(56, 189, 248, 0.22);
+            --glass-bg: rgba(13, 20, 36, 0.78);
+            --glass-border: rgba(56, 189, 248, 0.2);
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
         }
@@ -25,7 +25,7 @@
             overflow-x: hidden;
         }
 
-        /* Canvas Background Dinamico */
+        /* Canvas Background Dinamico a tutto schermo */
         #print-bg-canvas {
             position: fixed;
             inset: 0;
@@ -42,7 +42,7 @@
         }
 
         header {
-            background: rgba(11, 17, 32, 0.85);
+            background: rgba(10, 16, 30, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--glass-border);
@@ -105,7 +105,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -140,7 +140,7 @@
         }
 
         .badge {
-            background-color: rgba(14, 165, 233, 0.2);
+            background-color: rgba(14, 165, 233, 0.18);
             border: 1px solid var(--accent-cyan);
             color: #38bdf8;
             font-size: 12px;
@@ -159,7 +159,7 @@
             border: 1px solid var(--glass-border);
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -168,8 +168,8 @@
         }
 
         input, textarea {
-            background: rgba(7, 11, 20, 0.75);
-            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(7, 11, 20, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.28);
             color: #ffffff;
             padding: 12px;
             border-radius: 6px;
@@ -214,7 +214,7 @@
 </head>
 <body>
 
-    <!-- Background Animato Stampa 3D -->
+    <!-- Background Animato Multi-Parti a Tutta Pagina -->
     <canvas id="print-bg-canvas"></canvas>
 
     <header>
@@ -251,7 +251,7 @@
         </section>
     </main>
 
-    <!-- Script Animazione Background 3D Slicer -->
+    <!-- Script Animazione Background 3D Slicer Multi-Parti -->
     <script>
         (function() {
             const canvas = document.getElementById('print-bg-canvas');
@@ -260,15 +260,24 @@
             let width, height, dpr;
             let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
             let time = 0;
-            let particles = [];
 
+            // Configurazione più lenta, ampia e discreta
             const config = {
-                layers: 52,
-                layerHeight: 4.2,
-                radius: 135,
-                speed: 0.28, // Velocità di stampa strati
-                rotationSpeed: 0.0025
+                printSpeed: 0.065,      // Velocità di stampa molto rilassata
+                rotationSpeed: 0.035,   // Rotazione leggera della visuale
+                baseOpacity: 0.22       // Opacità soffusa per non disturbare il testo
             };
+
+            // 7 Parti distribuite su tutto il piano di stampa
+            const parts = [
+                { type: 'gear',     nx: -0.36, nz: -0.25, radius: 68, height: 85,  layers: 26, phase: 0.0 },
+                { type: 'vase',     nx:  0.34, nz: -0.22, radius: 62, height: 125, layers: 34, phase: 0.35 },
+                { type: 'cube',     nx: -0.32, nz:  0.26, radius: 58, height: 95,  layers: 28, phase: 0.65 },
+                { type: 'cylinder', nx:  0.35, nz:  0.24, radius: 64, height: 105, layers: 30, phase: 0.15 },
+                { type: 'helix',    nx:  0.00, nz: -0.34, radius: 52, height: 115, layers: 32, phase: 0.50 },
+                { type: 'prism',    nx: -0.02, nz:  0.32, radius: 60, height: 90,  layers: 26, phase: 0.80 },
+                { type: 'turbine',  nx:  0.00, nz:  0.00, radius: 74, height: 110, layers: 30, phase: 0.25 }
+            ];
 
             function resize() {
                 dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -276,7 +285,7 @@
                 height = window.innerHeight;
                 canvas.width = width * dpr;
                 canvas.height = height * dpr;
-                ctx.scale(dpr, dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
 
             window.addEventListener('resize', resize);
@@ -286,218 +295,209 @@
             });
             resize();
 
-            // Proiezione isometrica/prospettica 3D -> 2D
+            // Proiezione 3D -> 2D centrata su tutto lo schermo
             function project(x, y, z, rotY, tiltX) {
-                // Rotazione asse Y
                 const cosY = Math.cos(rotY);
                 const sinY = Math.sin(rotY);
                 const rx = x * cosY - z * sinY;
                 const rz = x * sinY + z * cosY;
 
-                // Inclinazione piano di stampa
                 const cosX = Math.cos(tiltX);
                 const sinX = Math.sin(tiltX);
                 const ry = y * cosX - rz * sinX;
                 const finalZ = y * sinX + rz * cosX;
 
-                const fov = 750;
-                const scale = fov / (fov + finalZ + 400);
-
-                // Posiziona l'oggetto leggermente decentrato a destra su schermi grandi
-                const offsetX = width > 768 ? width * 0.68 : width * 0.5;
-                const offsetY = height * 0.62;
+                const fov = 950;
+                const scale = fov / (fov + finalZ + 450);
 
                 return {
-                    x: offsetX + rx * scale,
-                    y: offsetY - ry * scale,
+                    x: (width * 0.5) + rx * scale,
+                    y: (height * 0.54) - ry * scale,
                     scale: scale
                 };
             }
 
-            // Genera i punti di un singolo strato (Vaso Parametrica Tech)
-            function getLayerPoints(layerIndex, totalLayers, segments = 48) {
-                const progress = layerIndex / totalLayers;
-                const y = layerIndex * config.layerHeight - (totalLayers * config.layerHeight) * 0.35;
-                // Profilo sinuoso + svasatura tech
-                const baseR = config.radius * (0.75 + 0.3 * Math.sin(progress * Math.PI * 1.35));
-                const twist = progress * Math.PI * 0.85;
+            // Genera i punti del profilo per ciascun tipo di parte meccanica
+            function getPartLayerPoints(part, layerIdx, cx, cz) {
+                const progress = layerIdx / part.layers;
+                const y = progress * part.height;
                 const pts = [];
+                let segments = 36;
+
+                if (part.type === 'cube') segments = 4;
+                if (part.type === 'prism') segments = 6;
 
                 for (let i = 0; i <= segments; i++) {
-                    const angle = (i / segments) * Math.PI * 2;
-                    // Nervature geometriche stile stampa 3D industriale
-                    const wave = Math.cos(angle * 8 + twist) * 10 * Math.sin(progress * Math.PI);
-                    const r = baseR + wave;
+                    const t = i / segments;
+                    const angle = t * Math.PI * 2;
+                    let r = part.radius;
+                    let a = angle;
+
+                    switch (part.type) {
+                        case 'gear':
+                            // Ingranaggio meccanico a 12 denti
+                            const tooth = Math.sin(angle * 12) > 0 ? 7 : -3;
+                            r = part.radius * 0.85 + tooth;
+                            break;
+                        case 'vase':
+                            // Vaso parametrico ritorto
+                            r = part.radius * (0.72 + 0.28 * Math.sin(progress * Math.PI * 1.3));
+                            r += Math.cos(angle * 6 + progress * 3) * 6;
+                            break;
+                        case 'cube':
+                            // Cubo con leggera torsione (Voronoi/CAD)
+                            a = angle + Math.PI / 4 + progress * 0.35;
+                            r = part.radius * 1.15;
+                            break;
+                        case 'cylinder':
+                            // Cilindro scanalato
+                            r = part.radius * (0.92 + 0.08 * Math.cos(angle * 8));
+                            break;
+                        case 'helix':
+                            // Elica ritorta a 3 lobi
+                            r = part.radius * (0.75 + 0.25 * Math.cos(angle * 3 - progress * Math.PI * 2));
+                            break;
+                        case 'prism':
+                            // Prisma esagonale rastremato
+                            r = part.radius * (1.05 - progress * 0.35);
+                            break;
+                        case 'turbine':
+                            // Girante a pale curve
+                            r = part.radius * (0.8 + 0.22 * Math.sin(angle * 7 + progress * Math.PI * 1.5));
+                            break;
+                    }
+
                     pts.push({
-                        x: Math.cos(angle) * r,
+                        x: cx + Math.cos(a) * r,
                         y: y,
-                        z: Math.sin(angle) * r
+                        z: cz + Math.sin(a) * r
                     });
                 }
                 return pts;
             }
 
-            // Disegna il piatto di stampa riscaldato (Build Plate)
-            function drawBuildPlate(rotY, tiltX) {
-                const gridSize = 240;
-                const step = 40;
+            // Disegna la grande griglia CAD su tutta la pagina
+            function drawFullBuildPlate(spreadX, spreadZ, rotY, tiltX) {
+                const step = 75;
+                const maxX = Math.ceil(spreadX / step) * step;
+                const maxZ = Math.ceil(spreadZ / step) * step;
+
                 ctx.lineWidth = 1;
 
-                for (let i = -gridSize; i <= gridSize; i += step) {
-                    const isMainAxis = i === 0;
-                    ctx.strokeStyle = isMainAxis ? 'rgba(56, 189, 248, 0.25)' : 'rgba(56, 189, 248, 0.08)';
-
-                    // Linee X
-                    const p1 = project(-gridSize, -75, i, rotY, tiltX);
-                    const p2 = project(gridSize, -75, i, rotY, tiltX);
+                for (let x = -maxX; x <= maxX; x += step) {
+                    const isAxis = x === 0;
+                    ctx.strokeStyle = isAxis ? 'rgba(56, 189, 248, 0.14)' : 'rgba(56, 189, 248, 0.045)';
+                    const p1 = project(x, 0, -maxZ, rotY, tiltX);
+                    const p2 = project(x, 0, maxZ, rotY, tiltX);
                     ctx.beginPath();
                     ctx.moveTo(p1.x, p1.y);
                     ctx.lineTo(p2.x, p2.y);
                     ctx.stroke();
-
-                    // Linee Z
-                    const p3 = project(i, -75, -gridSize, rotY, tiltX);
-                    const p4 = project(i, -75, gridSize, rotY, tiltX);
-                    ctx.beginPath();
-                    ctx.moveTo(p3.x, p3.y);
-                    ctx.lineTo(p4.x, p4.y);
-                    ctx.stroke();
                 }
-            }
 
-            // Particelle termiche/scintille dell'estrusore
-            function spawnParticle(x, y) {
-                if (particles.length > 35) return;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 1.8,
-                    vy: -Math.random() * 1.5 - 0.3,
-                    life: 1.0,
-                    size: Math.random() * 2.2 + 1
-                });
-            }
-
-            function updateAndDrawParticles() {
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    const p = particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.life -= 0.025;
-
-                    if (p.life <= 0) {
-                        particles.splice(i, 1);
-                        continue;
-                    }
-
-                    ctx.fillStyle = `rgba(56, 189, 248, ${p.life * 0.8})`;
+                for (let z = -maxZ; z <= maxZ; z += step) {
+                    const isAxis = z === 0;
+                    ctx.strokeStyle = isAxis ? 'rgba(56, 189, 248, 0.14)' : 'rgba(56, 189, 248, 0.045)';
+                    const p1 = project(-maxX, 0, z, rotY, tiltX);
+                    const p2 = project(maxX, 0, z, rotY, tiltX);
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
                 }
             }
 
             function animate() {
                 time += 0.016;
-                mouse.x += (mouse.targetX - mouse.x) * 0.05;
-                mouse.y += (mouse.targetY - mouse.y) * 0.05;
+                mouse.x += (mouse.targetX - mouse.x) * 0.03;
+                mouse.y += (mouse.targetY - mouse.y) * 0.03;
 
-                // Sfondo radiale scuro profondo
-                const grad = ctx.createRadialGradient(width * 0.7, height * 0.5, 50, width * 0.5, height * 0.5, width * 0.9);
-                grad.addColorStop(0, '#0f172a');
+                // Sfondo uniforme scuro e pulito
+                const grad = ctx.createRadialGradient(width * 0.5, height * 0.5, 80, width * 0.5, height * 0.5, Math.max(width, height) * 0.85);
+                grad.addColorStop(0, '#0c1426');
                 grad.addColorStop(1, '#050811');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, width, height);
 
-                const rotY = time * 0.25 + mouse.x * 0.45;
-                const tiltX = 0.42 + mouse.y * 0.15;
+                // Rotazione molto lenta e parallasse morbida
+                const rotY = Math.sin(time * config.rotationSpeed) * 0.35 + mouse.x * 0.22;
+                const tiltX = 0.48 + mouse.y * 0.08;
 
-                drawBuildPlate(rotY, tiltX);
+                // Adatta l'ampiezza del piatto alle dimensioni della finestra
+                const spreadX = Math.max(width * 0.65, 520);
+                const spreadZ = Math.max(height * 0.55, 380);
 
-                // Ciclo continuo di stampa (da 0 a totalLayers, poi reset morbido)
-                const cycleLength = config.layers + 18;
-                const currentPrintProgress = (time * config.speed * 12) % cycleLength;
-                const activeLayer = Math.min(Math.floor(currentPrintProgress), config.layers - 1);
-                const layerFraction = currentPrintProgress - Math.floor(currentPrintProgress);
+                drawFullBuildPlate(spreadX, spreadZ, rotY, tiltX);
 
-                // 1. Disegna anteprima wireframe (G-Code ghost) degli strati futuri
-                ctx.lineWidth = 0.7;
-                for (let l = activeLayer + 1; l < config.layers; l += 2) {
-                    const pts = getLayerPoints(l, config.layers, 32);
-                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.06)';
-                    ctx.beginPath();
-                    pts.forEach((pt, idx) => {
-                        const proj = project(pt.x, pt.y, pt.z, rotY, tiltX);
-                        if (idx === 0) ctx.moveTo(proj.x, proj.y);
-                        else ctx.lineTo(proj.x, proj.y);
-                    });
-                    ctx.stroke();
-                }
+                // Disegna ciascuna delle 7 parti
+                parts.forEach((part) => {
+                    const cx = part.nx * spreadX;
+                    const cz = part.nz * spreadZ;
 
-                // 2. Disegna gli strati già stampati
-                for (let l = 0; l <= activeLayer; l++) {
-                    const pts = getLayerPoints(l, config.layers, 48);
-                    const isCurrent = (l === activeLayer && currentPrintProgress < config.layers);
-                    const maxIdx = isCurrent ? Math.floor(pts.length * layerFraction) : pts.length - 1;
+                    // Ciclo di stampa lento e sfalsato per ogni oggetto
+                    const cycle = part.layers + 14;
+                    const rawProgress = ((time * config.printSpeed * 10) + part.phase * cycle) % cycle;
+                    const activeLayer = Math.min(Math.floor(rawProgress), part.layers - 1);
+                    const layerFrac = rawProgress - Math.floor(rawProgress);
 
-                    // Riempimento interno (Infill pattern) ogni 4 strati
-                    if (l % 4 === 0 && !isCurrent) {
-                        ctx.strokeStyle = 'rgba(14, 165, 233, 0.12)';
-                        ctx.lineWidth = 0.8;
-                        for (let k = 0; k < pts.length; k += 6) {
-                            const pA = project(pts[k].x, pts[k].y, pts[k].z, rotY, tiltX);
-                            const pB = project(pts[(k + 20) % pts.length].x, pts[k].y, pts[(k + 20) % pts.length].z, rotY, tiltX);
+                    // 1. Guida wireframe sottilissima dell'oggetto completo
+                    ctx.lineWidth = 0.6;
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.04)';
+                    for (let l = activeLayer + 1; l < part.layers; l += 3) {
+                        const pts = getPartLayerPoints(part, l, cx, cz);
+                        ctx.beginPath();
+                        pts.forEach((pt, idx) => {
+                            const proj = project(pt.x, pt.y, pt.z, rotY, tiltX);
+                            if (idx === 0) ctx.moveTo(proj.x, proj.y);
+                            else ctx.lineTo(proj.x, proj.y);
+                        });
+                        ctx.stroke();
+                    }
+
+                    // 2. Strati stampati
+                    for (let l = 0; l <= activeLayer; l++) {
+                        const pts = getPartLayerPoints(part, l, cx, cz);
+                        const isCurrent = (l === activeLayer && rawProgress < part.layers);
+                        const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
+
+                        // Riempimento interno (infill) discreto ogni 5 strati
+                        if (l % 5 === 0 && !isCurrent && pts.length > 6) {
+                            ctx.strokeStyle = 'rgba(14, 165, 233, 0.06)';
+                            ctx.lineWidth = 0.7;
+                            const pA = project(pts[0].x, pts[0].y, pts[0].z, rotY, tiltX);
+                            const mid = Math.floor(pts.length / 2);
+                            const pB = project(pts[mid].x, pts[mid].y, pts[mid].z, rotY, tiltX);
                             ctx.beginPath();
                             ctx.moveTo(pA.x, pA.y);
                             ctx.lineTo(pB.x, pB.y);
                             ctx.stroke();
                         }
-                    }
 
-                    // Perimetro estruso
-                    ctx.lineWidth = isCurrent ? 2.2 : 1.3;
-                    ctx.strokeStyle = isCurrent
-                        ? 'rgba(125, 211, 252, 0.95)'
-                        : `rgba(14, 165, 233, ${0.22 + (l / config.layers) * 0.35})`;
+                        ctx.lineWidth = isCurrent ? 1.5 : 1.0;
+                        ctx.strokeStyle = isCurrent
+                            ? 'rgba(125, 211, 252, 0.55)'
+                            : `rgba(14, 165, 233, ${0.10 + (l / part.layers) * config.baseOpacity})`;
 
-                    ctx.beginPath();
-                    for (let i = 0; i <= maxIdx; i++) {
-                        const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
-                        if (i === 0) ctx.moveTo(proj.x, proj.y);
-                        else ctx.lineTo(proj.x, proj.y);
+                        ctx.beginPath();
+                        for (let i = 0; i <= maxIdx; i++) {
+                            const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
+                            if (i === 0) ctx.moveTo(proj.x, proj.y);
+                            else ctx.lineTo(proj.x, proj.y);
 
-                        // Posizione dell'ugello (Nozzle)
-                        if (isCurrent && i === maxIdx) {
-                            // Raggio laser/testina dall'alto
-                            const nozzleTop = project(pts[i].x, pts[i].y + 180, pts[i].z, rotY, tiltX);
-                            const laserGrad = ctx.createLinearGradient(nozzleTop.x, nozzleTop.y, proj.x, proj.y);
-                            laserGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
-                            laserGrad.addColorStop(1, 'rgba(125, 211, 252, 0.75)');
-
-                            ctx.save();
-                            ctx.strokeStyle = laserGrad;
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            ctx.moveTo(nozzleTop.x, nozzleTop.y);
-                            ctx.lineTo(proj.x, proj.y);
-                            ctx.stroke();
-
-                            // Bagliore punta estrusore
-                            ctx.fillStyle = '#ffffff';
-                            ctx.shadowColor = '#38bdf8';
-                            ctx.shadowBlur = 15;
-                            ctx.beginPath();
-                            ctx.arc(proj.x, proj.y, 3.5, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.restore();
-
-                            if (Math.random() > 0.45) spawnParticle(proj.x, proj.y);
+                            // Punto luminoso delicato dove sta lavorando l'estrusore
+                            if (isCurrent && i === maxIdx) {
+                                ctx.save();
+                                ctx.fillStyle = 'rgba(186, 230, 253, 0.75)';
+                                ctx.beginPath();
+                                ctx.arc(proj.x, proj.y, 2.2, 0, Math.PI * 2);
+                                ctx.fill();
+                                ctx.restore();
+                            }
                         }
+                        ctx.stroke();
                     }
-                    ctx.stroke();
-                }
+                });
 
-                updateAndDrawParticles();
                 requestAnimationFrame(animate);
             }
 
@@ -537,10 +537,13 @@
                 container.innerHTML = ""; // Pulisce il testo di caricamento
                 querySnapshot.forEach((doc) => {
                     const item = doc.data();
+                    const imgTag = item.immagineUrl 
+                        ? `<img src="${item.immagineUrl}" alt="${item.Titolo || 'Prodotto'}" onerror="this.style.display='none'">` 
+                        : '';
                     container.innerHTML += `
                         <article class="card">
                             <div>
-                                <img src="${item.immagineUrl || 'https://placehold.co/400x250/1e293b/38bdf8?text=3DParts'}" alt="${item.Titolo || 'Prodotto'}">
+                                ${imgTag}
                                 <span class="badge">${item.Categoria || 'Generale'}</span>
                                 <h3>${item.Titolo || 'Senza titolo'}</h3>
                                 <p>${item.Descrizione || ''}</p>
