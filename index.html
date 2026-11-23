@@ -15,9 +15,9 @@
                 <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13.5px;">Progettazione CAD 2D & Stampe 3D Personalizzate</p>
             </div>
             <div class="header-actions">
-            	<button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
-            	<a href="admin.html" class="admin-btn">Area Admin</a>
-        	</div>
+                <button id="themeToggleBtn" class="theme-btn" type="button">☀️ Tema Chiaro</button>
+                <a href="admin.html" class="admin-btn">Area Admin</a>
+            </div>
         </div>
 
         <nav class="nav-tabs" aria-label="Pagine del sito">
@@ -233,6 +233,8 @@
         </div>
     </div>
 
+    <script src="theme.js"></script>
+
     <!-- Script Simulatore 3D -->
     <script>
         (function() {
@@ -356,11 +358,11 @@
                 return pts;
             }
 
-            function drawBuildPlate(rotY, tiltX) {
+            function drawBuildPlate(rotY, tiltX, pal) {
                 const size = 140, step = 28;
                 ctx.lineWidth = 1;
                 for (let i = -size; i <= size; i += step) {
-                    ctx.strokeStyle = i === 0 ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.12)';
+                    ctx.strokeStyle = i === 0 ? pal.axis : pal.gridMinor;
                     const p1 = project(-size, 0, i, rotY, tiltX), p2 = project(size, 0, i, rotY, tiltX);
                     ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
                     const p3 = project(i, 0, -size, rotY, tiltX), p4 = project(i, 0, size, rotY, tiltX);
@@ -370,6 +372,17 @@
 
             function animate() {
                 if (!isOpen) return;
+                const pal = window.getCanvasTheme ? window.getCanvasTheme() : {
+                    gridMinor: "rgba(56, 189, 248, 0.08)",
+                    axis: "rgba(56, 189, 248, 0.25)",
+                    wireframe: "rgba(56, 189, 248, 0.08)",
+                    infill: "rgba(14, 165, 233, 0.16)",
+                    layerBase: (t) => `rgba(14, 165, 233, ${0.28 + t * 0.45})`,
+                    activeStroke: "#7dd3fc",
+                    nozzleLine: "rgba(125, 211, 252, 0.45)",
+                    nozzleDot: "#ffffff"
+                };
+
                 time += 0.016 * state.speed;
                 state.baseRotY += 0.0035;
                 state.currentMouseX += (state.targetMouseX - state.currentMouseX) * 0.07;
@@ -378,7 +391,7 @@
                 const tiltX = 0.42 + state.currentMouseY * 0.32;
 
                 ctx.clearRect(0, 0, width, height);
-                drawBuildPlate(rotY, tiltX);
+                drawBuildPlate(rotY, tiltX, pal);
 
                 const cycle = state.totalLayers + 10;
                 const rawProgress = (time * 6.5) % cycle;
@@ -387,7 +400,7 @@
                 hudLayer.textContent = `LAYER: ${activeLayer + 1} / ${state.totalLayers}`;
 
                 ctx.lineWidth = 0.6;
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+                ctx.strokeStyle = pal.wireframe;
                 for (let l = activeLayer + 1; l < state.totalLayers; l += 2) {
                     const pts = getModelPoints(l, state.totalLayers);
                     ctx.beginPath();
@@ -401,7 +414,7 @@
                     const maxIdx = isCurrent ? Math.max(1, Math.floor(pts.length * layerFrac)) : pts.length - 1;
 
                     if (l % 4 === 0 && !isCurrent) {
-                        ctx.strokeStyle = 'rgba(14, 165, 233, 0.16)';
+                        ctx.strokeStyle = pal.infill;
                         ctx.lineWidth = 0.8;
                         for (let k = 0; k < pts.length; k += 10) {
                             const pA = project(pts[k].x, pts[k].y, pts[k].z, rotY, tiltX);
@@ -411,7 +424,7 @@
                     }
 
                     ctx.lineWidth = isCurrent ? 2.2 : 1.3;
-                    ctx.strokeStyle = isCurrent ? '#7dd3fc' : `rgba(14, 165, 233, ${0.28 + (l / state.totalLayers) * 0.45})`;
+                    ctx.strokeStyle = isCurrent ? pal.activeStroke : pal.layerBase(l / state.totalLayers);
                     ctx.beginPath();
                     for (let i = 0; i <= maxIdx; i++) {
                         const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
@@ -419,10 +432,10 @@
                         if (isCurrent && i === maxIdx) {
                             const nozzleTop = project(pts[i].x, pts[i].y + 110, pts[i].z, rotY, tiltX);
                             ctx.save();
-                            ctx.strokeStyle = 'rgba(125, 211, 252, 0.45)';
+                            ctx.strokeStyle = pal.nozzleLine;
                             ctx.lineWidth = 1.5;
                             ctx.beginPath(); ctx.moveTo(nozzleTop.x, nozzleTop.y); ctx.lineTo(proj.x, proj.y); ctx.stroke();
-                            ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 12;
+                            ctx.fillStyle = pal.nozzleDot; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 12;
                             ctx.beginPath(); ctx.arc(proj.x, proj.y, 3.2, 0, Math.PI * 2); ctx.fill();
                             ctx.restore();
                         }
@@ -506,18 +519,18 @@
             }
             window.addEventListener('resize', () => { if (isOpen) resizeCanvas(); });
 
-            function drawCadGrid(cx, cy) {
+            function drawCadGrid(cx, cy, pal) {
                 const minor = 16, major = minor * 5;
                 ctx.lineWidth = 1;
-                for (let x = cx % minor; x < width; x += minor) { ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)'; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
-                for (let y = cy % minor; y < height; y += minor) { ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)'; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
-                for (let x = cx % major; x < width; x += major) { ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)'; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
-                for (let y = cy % major; y < height; y += major) { ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)'; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
+                for (let x = cx % minor; x < width; x += minor) { ctx.strokeStyle = pal.gridMinor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
+                for (let y = cy % minor; y < height; y += minor) { ctx.strokeStyle = pal.gridMinor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
+                for (let x = cx % major; x < width; x += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
+                for (let y = cy % major; y < height; y += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
 
                 if (state.showDims) {
                     ctx.save();
                     ctx.setLineDash([8, 4, 2, 4]);
-                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+                    ctx.strokeStyle = pal.axis;
                     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();
                     ctx.restore();
@@ -579,12 +592,12 @@
                 return paths;
             }
 
-            function drawDimensions(cx, cy, alpha) {
+            function drawDimensions(cx, cy, alpha, pal) {
                 if (!state.showDims || alpha <= 0) return;
                 ctx.save();
                 ctx.globalAlpha = alpha;
-                ctx.strokeStyle = '#38bdf8';
-                ctx.fillStyle = '#7dd3fc';
+                ctx.strokeStyle = pal.dimColor;
+                ctx.fillStyle = pal.dimColor;
                 ctx.font = '11px monospace';
                 ctx.lineWidth = 1;
 
@@ -605,7 +618,7 @@
                     ctx.beginPath(); ctx.moveTo(cx + 135, base); ctx.lineTo(xDim + 4, base); ctx.moveTo(cx + 135, base - 62); ctx.lineTo(xDim + 4, base - 62); ctx.moveTo(xDim, base); ctx.lineTo(xDim, base - 62); ctx.stroke();
                     ctx.fillText('H=2.70m', xDim + 5, base - 28);
                 } else if (state.model === 'gear2d') {
-                    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)'; ctx.beginPath(); ctx.arc(cx, cy, 86, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+                    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = pal.axis; ctx.beginPath(); ctx.arc(cx, cy, 86, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
                     const yDim = cy - 115;
                     ctx.beginPath(); ctx.moveTo(cx - 97, cy); ctx.lineTo(cx - 97, yDim - 4); ctx.moveTo(cx + 97, cy); ctx.lineTo(cx + 97, yDim - 4); ctx.moveTo(cx - 97, yDim); ctx.lineTo(cx + 97, yDim); ctx.stroke();
                     ctx.fillText('Ø 120.00 mm (Z=14)', cx - 52, yDim - 6);
@@ -615,10 +628,21 @@
 
             function animate() {
                 if (!isOpen) return;
+                const pal = window.getCanvasTheme ? window.getCanvasTheme() : {
+                    gridMinor: "rgba(56, 189, 248, 0.05)",
+                    gridMajor: "rgba(56, 189, 248, 0.12)",
+                    axis: "rgba(56, 189, 248, 0.25)",
+                    wallStroke: "#7dd3fc",
+                    thinStroke: "rgba(56, 189, 248, 0.55)",
+                    activeStroke: "#38bdf8",
+                    dimColor: "#7dd3fc",
+                    cursor: "#ffffff"
+                };
+
                 time += 0.016 * state.speed;
                 const cx = width * 0.5, cy = height * 0.52;
                 ctx.clearRect(0, 0, width, height);
-                drawCadGrid(cx, cy);
+                drawCadGrid(cx, cy, pal);
 
                 const paths = getCadPaths(cx, cy);
                 const totalSegments = paths.reduce((acc, p) => acc + p.pts.length, 0);
@@ -633,9 +657,9 @@
                     const count = Math.min(path.pts.length, targetSegments - drawnCount);
                     ctx.save();
                     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                    if (path.style === 'wall') { ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 2.2; }
-                    else if (path.style === 'thin') { ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)'; ctx.lineWidth = 1.1; ctx.setLineDash([3, 3]); }
-                    else { ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.6; }
+                    if (path.style === 'wall') { ctx.strokeStyle = pal.wallStroke; ctx.lineWidth = 2.2; }
+                    else if (path.style === 'thin') { ctx.strokeStyle = pal.thinStroke; ctx.lineWidth = 1.1; ctx.setLineDash([3, 3]); }
+                    else { ctx.strokeStyle = pal.activeStroke; ctx.lineWidth = 1.6; }
 
                     ctx.beginPath();
                     for (let i = 0; i < count; i++) {
@@ -649,14 +673,14 @@
                 });
 
                 const dimAlpha = ratio > 0.65 ? Math.min(1, (ratio - 0.65) / 0.35) : 0;
-                drawDimensions(cx, cy, dimAlpha);
+                drawDimensions(cx, cy, dimAlpha, pal);
 
                 if (ratio < 1) {
                     const relX = ((cursorPos.x - cx) * 0.05).toFixed(2), relY = ((cy - cursorPos.y) * 0.05).toFixed(2);
                     hudCoords.textContent = `X: ${relX}  Y: ${relY} m`;
-                    ctx.save(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2;
+                    ctx.save(); ctx.strokeStyle = pal.cursor; ctx.lineWidth = 1.2;
                     ctx.beginPath(); ctx.moveTo(cursorPos.x - 9, cursorPos.y); ctx.lineTo(cursorPos.x + 9, cursorPos.y); ctx.moveTo(cursorPos.x, cursorPos.y - 9); ctx.lineTo(cursorPos.x, cursorPos.y + 9); ctx.stroke();
-                    ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(cursorPos.x, cursorPos.y, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = pal.activeStroke; ctx.beginPath(); ctx.arc(cursorPos.x, cursorPos.y, 2.5, 0, Math.PI * 2); ctx.fill();
                     ctx.restore();
                 } else {
                     hudCoords.textContent = `TAVOLA COMPLETATA`;

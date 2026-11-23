@@ -16,7 +16,6 @@
         updateToggleButton();
     }
 
-    // Palette condivisa per i canvas 3D e 2D CAD in base al tema attivo
     window.getCanvasTheme = function() {
         if (isLight()) {
             return {
@@ -55,15 +54,22 @@
 
     applyTheme(localStorage.getItem(STORAGE_KEY) || "dark");
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function attachListeners() {
         updateToggleButton();
         const btn = document.getElementById("themeToggleBtn");
-        if (btn) {
+        if (btn && !btn.dataset.themeBound) {
+            btn.dataset.themeBound = "1";
             btn.addEventListener("click", () => {
                 const next = isLight() ? "dark" : "light";
                 localStorage.setItem(STORAGE_KEY, next);
                 applyTheme(next);
             });
         }
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", attachListeners);
+    } else {
+        attachListeners();
+    }
 })();
