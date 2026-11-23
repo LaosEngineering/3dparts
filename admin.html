@@ -519,7 +519,7 @@
         dataAl.addEventListener("change", mostraRichieste);
 
         // ---------------- SALVATAGGIO FOTO SU FIREBASE (STORAGE + FALLBACK FIRESTORE) ----------------
-        function comprimiImmagineDataUrl(file, maxWidth = 1000, quality = 0.78) {
+        function comprimiImmagineDataUrl(file, maxWidth = 820, quality = 0.72) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
@@ -547,18 +547,8 @@
         }
 
         async function salvaFotoSuFirebase(file, cartella) {
-            const nomePulito = (file.name || "foto").replace(/[^a-zA-Z0-9._-]/g, "_");
-            const percorso = `${cartella}/${Date.now()}_${nomePulito}`;
-            try {
-                const storageRef = ref(storage, percorso);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                return { url, percorso, viaStorage: true };
-            } catch (storageErr) {
-                console.warn("Storage non disponibile o bloccato, salvo immagine compressa su Firestore:", storageErr);
-                const compressedUrl = await comprimiImmagineDataUrl(file, 960, 0.75);
-                return { url: compressedUrl, percorso: "", viaStorage: false };
-            }
+            const compressedUrl = await comprimiImmagineDataUrl(file, 820, 0.72);
+            return { url: compressedUrl, percorso: "", viaStorage: false };
         }
 
         function setupAnteprimaMultipla(inputId, boxId) {
