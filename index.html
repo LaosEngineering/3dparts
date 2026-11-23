@@ -5,418 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laos Engineering / 3DParts - Servizi 2D & 3D</title>
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* Armonizzazione layout modali 16:9 - Prototipazione 3D e Progettazione CAD */
-        #protoModal .modal-box,
-        #cadModal .modal-box {
-            width: min(96vw, 1280px);
-            aspect-ratio: 16 / 9;
-            max-height: 92vh;
-            border-radius: 16px;
-            border: 1px solid rgba(148, 163, 184, 0.22);
-            background: #0b1220;
-            box-shadow: 0 24px 64px rgba(2, 6, 23, 0.72);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        @media (max-width: 1024px) {
-            #protoModal .modal-box,
-            #cadModal .modal-box {
-                width: 95%;
-                aspect-ratio: auto;
-                max-height: 92vh;
-                overflow-y: auto;
-            }
-        }
-        #protoModal .modal-header,
-        #cadModal .modal-header {
-            padding: 14px 22px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-            background: rgba(15, 23, 42, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        #protoModal .modal-header h3,
-        #cadModal .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            color: #f1f5f9;
-        }
-        #protoModal .modal-body,
-        #cadModal .modal-body {
-            flex: 1;
-            min-height: 0;
-            display: grid;
-            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
-            gap: 20px;
-            padding: 18px 22px;
-            align-items: stretch;
-        }
-        @media (max-width: 900px) {
-            #protoModal .modal-body,
-            #cadModal .modal-body {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-        }
-        .modal-left-col {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        #protoModal .viewer-wrapper,
-        #cadModal .viewer-wrapper {
-            position: relative;
-            width: 100%;
-            flex: 1;
-            min-height: 220px;
-            border-radius: 14px;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            background: radial-gradient(circle at 50% 45%, rgba(14, 165, 233, 0.12), rgba(7, 13, 25, 0.96) 72%);
-            overflow: hidden;
-        }
-        #slicer-canvas,
-        #cad-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        .hud-top-stack {
-            position: absolute;
-            top: 12px;
-            left: 14px;
-            right: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .hud-left-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 7px;
-        }
-        .hud-right-stack {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: #bae6fd;
-            text-align: right;
-            line-height: 1.35;
-        }
-        .sim-inner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(14, 165, 233, 0.16);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.42);
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .hud-sub-line {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #bae6fd;
-            line-height: 1.35;
-        }
-        .slicer-bottom-bar {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .slicer-embedded-slider {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(148, 163, 184, 0.24);
-            border-radius: 10px;
-            padding: 7px 12px;
-            backdrop-filter: blur(8px);
-        }
-        .slicer-embedded-slider-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 4px;
-        }
-        .slicer-embedded-slider-top span {
-            color: #38bdf8;
-            font-family: 'Consolas', 'Monaco', monospace;
-        }
-        .slicer-embedded-slider input[type="range"] {
-            width: 100%;
-            margin: 0;
-            cursor: pointer;
-            accent-color: #38bdf8;
-        }
-        #protoModal .speed-pill-btn {
-            position: static;
-            height: 42px;
-            min-width: 46px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            background: rgba(15, 23, 42, 0.9);
-            color: #e2e8f0;
-            font-size: 12.5px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-        #protoModal .speed-pill-btn:hover {
-            border-color: #38bdf8;
-            color: #38bdf8;
-            background: rgba(14, 165, 233, 0.14);
-        }
-        #cadModal .speed-pill-btn {
-            position: absolute;
-            right: 12px;
-            bottom: 12px;
-            z-index: 5;
-        }
-        .left-selectors-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .left-single-selector {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        @media (max-width: 640px) {
-            .left-selectors-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .modal-left-col .control-group {
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .modal-left-col .control-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        .modal-left-col .control-group select {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.26);
-            background: #111b2e;
-            color: #f8fafc;
-            font-size: 13px;
-            outline: none;
-        }
-        .modal-left-col .control-group select:focus {
-            border-color: #38bdf8;
-        }
-        #protoModal .controls-panel,
-        #cadModal .controls-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-width: 0;
-            min-height: 0;
-        }
-        .single-detail-card {
-            background: rgba(15, 23, 42, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 14px;
-            padding: 15px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-        .detail-block-tag {
-            display: inline-block;
-            font-size: 10.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-        .single-detail-title {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #38bdf8;
-            line-height: 1.3;
-        }
-        .single-detail-text {
-            margin: 4px 0 0 0;
-            font-size: 12.5px;
-            line-height: 1.48;
-            color: #cbd5e1;
-        }
-        .single-detail-divider {
-            border: 0;
-            border-top: 1px solid rgba(148, 163, 184, 0.16);
-            margin: 0;
-        }
-        .mat-specs-box {
-            margin-top: 9px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.18);
-            font-size: 12px;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .mat-specs-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            line-height: 1.35;
-        }
-        .mat-specs-row strong {
-            color: #e2e8f0;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .mat-specs-row span {
-            text-align: right;
-            color: #cbd5e1;
-        }
-        #cadModal .checkbox-row {
-            margin-bottom: 0;
-            padding: 9px 12px;
-        }
-        #cadModal .specs-pills {
-            margin-top: 8px;
-            gap: 6px;
-        }
-        #richiediProtoBtn.btn-primary,
-        #richiediCadBtn.btn-primary {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 11px;
-            font-size: 13.5px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1.25;
-            flex-shrink: 0;
-        }
-        body.light-mode #protoModal .modal-box,
-        body.light-mode #cadModal .modal-box {
-            background: #ffffff;
-            border-color: #cbd5e1;
-        }
-        body.light-mode #protoModal .modal-header,
-        body.light-mode #cadModal .modal-header {
-            background: #f8fafc;
-            border-bottom-color: #e2e8f0;
-        }
-        body.light-mode #protoModal .modal-header h3,
-        body.light-mode #cadModal .modal-header h3 {
-            color: #0f172a;
-        }
-        body.light-mode #protoModal .viewer-wrapper,
-        body.light-mode #cadModal .viewer-wrapper {
-            background: radial-gradient(circle at 50% 45%, rgba(2, 132, 199, 0.1), #f1f5f9 75%);
-            border-color: #cbd5e1;
-        }
-        body.light-mode .hud-right-stack,
-        body.light-mode .hud-sub-line {
-            color: #0369a1;
-        }
-        body.light-mode .slicer-embedded-slider,
-        body.light-mode #protoModal .speed-pill-btn {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #cbd5e1;
-            color: #0f172a;
-        }
-        body.light-mode .slicer-embedded-slider-top {
-            color: #0f172a;
-        }
-        body.light-mode .modal-left-col .control-group select {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: #cbd5e1;
-        }
-        body.light-mode .single-detail-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        body.light-mode .single-detail-title {
-            color: #0369a1;
-        }
-        body.light-mode .single-detail-text,
-        body.light-mode .mat-specs-row span {
-            color: #334155;
-        }
-        body.light-mode .mat-specs-row strong {
-            color: #0f172a;
-        }
-
-        .single-detail-card {
-            justify-content: space-between;
-            gap: 10px;
-            overflow-y: auto;
-        }
-        #cadModal .specs-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        #cadModal .spec-pill {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 9px;
-            border-radius: 999px;
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px solid rgba(56, 189, 248, 0.28);
-            color: #7dd3fc;
-        }
-        body.light-mode #cadModal .spec-pill {
-            background: rgba(2, 132, 199, 0.1);
-            border-color: rgba(2, 132, 199, 0.25);
-            color: #0369a1;
-        }
-    </style>
-
 </head>
 <body>
 
@@ -501,49 +89,27 @@
     <div id="protoModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>Prototipazione componenti in 3D</h3>
+                <h3>
+                    <span class="badge" style="margin:0;">Simulatore Slicer</span>
+                    Prototipazione Rapida 3D
+                </h3>
                 <button id="closeModalBtn" class="close-btn" title="Chiudi">&times;</button>
             </div>
 
             <div class="modal-body">
-                <div class="modal-left-col">
+                <div>
                     <div id="viewerWrapper" class="viewer-wrapper">
                         <canvas id="slicer-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Simulatore Slicer</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="hud-layer">LAYER: 0 / 42</span>
-                                <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
-                            </div>
+                        <div class="viewer-hud">
+                            <span id="hud-layer">LAYER: 0 / 42</span>
+                            <span id="hud-res">ALTEZZA STRATO: 0.20mm</span>
                         </div>
-
-                        <div class="slicer-bottom-bar">
-                            <div class="slicer-embedded-slider" id="embeddedSliderBox">
-                                <div class="slicer-embedded-slider-top">
-                                    <label for="layersSlider" style="margin:0; cursor:pointer;">Densità Layer Lines</label>
-                                    <span id="layersValue">42 strati (0.20mm)</span>
-                                </div>
-                                <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
-                            </div>
-                            <button id="protoSpeedBtn" class="speed-pill-btn" title="Cambia velocità animazione">1x</button>
-                        </div>
+                        <button id="protoSpeedBtn" class="speed-pill-btn" title="Cambia velocità animazione">1x</button>
                     </div>
 
-                    <div class="left-selectors-grid">
-                        <div class="control-group">
-                            <label for="modelSelect">Tipo di Oggetto 3D</label>
-                            <select id="modelSelect">
-                                <option value="gear">Ingranaggio Meccanico (12 denti)</option>
-                                <option value="vase">Vaso Parametrico Ritorto</option>
-                                <option value="helix">Elica Aerodinamica</option>
-                                <option value="bracket">Cilindro Scanalato Industriale</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="materialSelect">Materiale di Stampa</label>
+                    <div style="margin-top: 16px;">
+                        <div class="control-group" style="margin-bottom: 10px;">
+                            <label for="materialSelect">Materiale di Stampa (Seleziona per specifiche)</label>
                             <select id="materialSelect">
                                 <option value="pla">PLA+ (Acido Polilattico Rinforzato)</option>
                                 <option value="petg">PETG (Polietilene Tereftalato Glicole)</option>
@@ -552,36 +118,52 @@
                                 <option value="resin">Resina Engineering Tough (MSLA)</option>
                             </select>
                         </div>
+
+                        <div id="materialSpecsBox" class="material-specs-card">
+                            <div class="mat-spec-row">
+                                <span class="mat-spec-label">Temp. Fusione / Estrusione:</span>
+                                <span id="mat-temp" class="mat-spec-val">205°C – 220°C</span>
+                            </div>
+                            <div class="mat-spec-row">
+                                <span class="mat-spec-label">Resistenza Meccanica:</span>
+                                <span id="mat-strength" class="mat-spec-val">Media-Alta (60 MPa)</span>
+                            </div>
+                            <div class="mat-spec-row">
+                                <span class="mat-spec-label">Resistenza Termica:</span>
+                                <span id="mat-heat" class="mat-spec-val">Fino a 55°C</span>
+                            </div>
+                            <div id="mat-desc" class="mat-desc-note">
+                                Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="controls-panel">
-                    <div id="activeSelectionDescription" class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Geometria Selezionata</span>
-                            <h4 id="desc-target-title" class="single-detail-title">Ingranaggio Meccanico (12 denti)</h4>
-                            <p id="desc-target-body" class="single-detail-text">
-                                Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.
-                            </p>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Materiale di Stampa</span>
-                            <h4 id="desc-mat-title" class="single-detail-title">PLA+ (Acido Polilattico Rinforzato)</h4>
-                            <p id="desc-mat-body" class="single-detail-text">
-                                Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.
-                            </p>
-                            <div class="mat-specs-box">
-                                <div class="mat-specs-row"><strong>Estrusione / Processo:</strong> <span id="mat-temp">205°C – 220°C</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Meccanica:</strong> <span id="mat-strength">Media-Alta (60 MPa)</span></div>
-                                <div class="mat-specs-row"><strong>Resistenza Termica:</strong> <span id="mat-heat">Fino a 55°C</span></div>
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label for="modelSelect">Tipo di Oggetto 3D</label>
+                        <select id="modelSelect">
+                            <option value="gear">Ingranaggio Meccanico (12 denti)</option>
+                            <option value="vase">Vaso Parametrico Ritorto</option>
+                            <option value="helix">Elica Aerodinamica</option>
+                            <option value="bracket">Cilindro Scanalato Industriale</option>
+                        </select>
                     </div>
 
-                    <button id="richiediProtoBtn" class="btn-primary">
+                    <div class="control-group">
+                        <label for="layersSlider">
+                            Densità Layer Lines
+                            <span id="layersValue">42 strati (0.20mm)</span>
+                        </label>
+                        <input type="range" id="layersSlider" min="16" max="75" step="1" value="42">
+                    </div>
+
+                    <div class="service-description">
+                        <strong>Come funziona la stampa a strati?</strong>
+                        Ogni modello viene suddiviso (<em>slicing</em>) in decine o centinaia di sezioni orizzontali. Muovi il cursore sull'anteprima a sinistra per ispezionare l'oggetto da diverse angolazioni e usa il tasto in basso a destra per variare la velocità di estrusione.
+                    </div>
+
+                    <button id="richiediProtoBtn" class="btn-primary" style="margin-top: auto;">
                         Richiedi Preventivo con questo Materiale
                     </button>
                 </div>
@@ -589,71 +171,61 @@
         </div>
     </div>
 
-    <!-- BOX 2: PROGETTAZIONE CAD -->
+    <!-- BOX 2: PROGETTAZIONE CAD 2D -->
     <div id="cadModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>Progettazione CAD</h3>
+                <h3>
+                    <span class="badge" style="margin:0;">Tavola Tecnica 2D</span>
+                    Progettazione CAD & Architettura 2D
+                </h3>
                 <button id="closeCadModalBtn" class="close-btn" title="Chiudi">&times;</button>
             </div>
 
             <div class="modal-body">
-                <div class="modal-left-col">
+                <div>
                     <div id="cadViewerWrapper" class="viewer-wrapper">
                         <canvas id="cad-canvas"></canvas>
-                        <div class="hud-top-stack">
-                            <div class="hud-left-stack">
-                                <span class="sim-inner-badge">Tavola Tecnica 2D</span>
-                            </div>
-                            <div class="hud-right-stack">
-                                <span id="cad-hud-coords">X: 0.00  Y: 0.00 m</span>
-                                <span id="cad-hud-scale" class="hud-sub-line">SCALA 1:50 • ARCH-CAD</span>
-                            </div>
+                        <div class="viewer-hud">
+                            <span id="cad-hud-coords">X: 0.00  Y: 0.00 m</span>
+                            <span id="cad-hud-scale">SCALA 1:50 • ARCH-CAD</span>
                         </div>
                         <button id="cadSpeedBtn" class="speed-pill-btn" title="Cambia velocità tracciamento">1x</button>
                     </div>
 
-                    <div class="left-single-selector">
-                        <div class="control-group">
-                            <label for="cadModelSelect">Elaborato CAD 2D</label>
-                            <select id="cadModelSelect">
-                                <option value="facade">Prospetto Facciata Abitazione</option>
-                                <option value="floorplan">Piantina Architettonica (Bilocale)</option>
-                                <option value="section2d">Sezione Strutturale con Scala</option>
-                                <option value="gear2d">Ingranaggio Meccanico Quotato</option>
-                            </select>
+                    <div class="service-description" style="margin-top: 16px;">
+                        <strong>Tavole architettoniche e disegni tecnici pronti per il cantiere o l'officina</strong>
+                        Realizziamo planimetrie quotate, prospetti di facciate, sezioni strutturali e file vettoriali DXF/DWG per taglio laser e modellazione 3D.
+                        <div class="specs-pills">
+                            <span class="spec-pill">Formati DWG / DXF / PDF</span>
+                            <span class="spec-pill">Prospetti & Planimetrie</span>
+                            <span class="spec-pill">Quotatura Tecnica</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="controls-panel">
-                    <div class="single-detail-card">
-                        <div>
-                            <span class="detail-block-tag">Workflow CAD</span>
-                            <h4 class="single-detail-title">Dalla tavola 2D al modello tridimensionale</h4>
-                            <p class="single-detail-text">
-                                Partendo da un rilievo, uno schizzo o un'idea progettuale, realizziamo elaborati 2D puliti e organizzati per layer, pronti per il 3D o l'esecutivo.
-                            </p>
-                        </div>
-
-                        <hr class="single-detail-divider">
-
-                        <div>
-                            <span class="detail-block-tag">Elaborato Selezionato</span>
-                            <h4 id="cad-desc-title" class="single-detail-title">Prospetto Facciata Abitazione</h4>
-                            <p id="cad-desc-body" class="single-detail-text">
-                                Restituzione grafica di prospetti esterni, aperture, falde e quote altimetriche in scala per pratiche edilizie, rilievi e studio dei materiali.
-                            </p>
-                            <div class="specs-pills">
-                                <span class="spec-pill">Formati DWG / DXF / PDF</span>
-                                <span class="spec-pill">Prospetti &amp; Planimetrie</span>
-                                <span class="spec-pill">Quotatura Tecnica</span>
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label for="cadModelSelect">Elaborato CAD 2D</label>
+                        <select id="cadModelSelect">
+                            <option value="facade">Prospetto Facciata Abitazione</option>
+                            <option value="floorplan">Piantina Architettonica (Bilocale)</option>
+                            <option value="section2d">Sezione Strutturale con Scala</option>
+                            <option value="gear2d">Ingranaggio Meccanico Quotato</option>
+                        </select>
                     </div>
 
+                    <label class="checkbox-row" for="cadDimsToggle">
+                        <span>Mostra Quote e Linee di Costruzione</span>
+                        <input type="checkbox" id="cadDimsToggle" checked>
+                    </label>
 
-                    <button id="richiediCadBtn" class="btn-primary">
+                    <div class="service-description">
+                        <strong>Dalla tavola 2D al modello tridimensionale</strong>
+                        Partendo da un rilievo, uno schizzo su carta o un'idea progettuale, costruiamo elaborati 2D puliti e organizzati per layer, pronti per essere estrusi in 3D o consegnati in formato esecutivo.
+                    </div>
+
+                    <button id="richiediCadBtn" class="btn-primary" style="margin-top: auto;">
                         Richiedi Consulenza CAD
                     </button>
                 </div>
@@ -669,7 +241,6 @@
             const modal = document.getElementById('protoModal');
             const closeBtn = document.getElementById('closeModalBtn');
             const viewerWrapper = document.getElementById('viewerWrapper');
-            const embeddedSliderBox = document.getElementById('embeddedSliderBox');
             const canvas = document.getElementById('slicer-canvas');
             const ctx = canvas.getContext('2d');
 
@@ -682,65 +253,21 @@
             const hudRes = document.getElementById('hud-res');
             const richiediProtoBtn = document.getElementById('richiediProtoBtn');
 
-            const descTargetTitle = document.getElementById('desc-target-title');
-            const descTargetBody = document.getElementById('desc-target-body');
-            const descMatTitle = document.getElementById('desc-mat-title');
-            const descMatBody = document.getElementById('desc-mat-body');
-
-            const modelsDB = {
-                gear: {
-                    name: 'Ingranaggio Meccanico (12 denti)',
-                    desc: 'Ruota dentata parametrica a 12 denti progettata per trasmissioni leggere, riduttori e accoppiamenti meccanici con profili verificati.'
-                },
-                vase: {
-                    name: 'Vaso Parametrico Ritorto',
-                    desc: 'Geometria elicoidale a parete continua ideale per testare continuità di estrusione, finitura superficiale e andamento dei layer.'
-                },
-                helix: {
-                    name: 'Elica Aerodinamica',
-                    desc: 'Profilo curvo a passo variabile studiato per valutare torsione geometrica, spessori sottili e bilanciamento degli strati.'
-                },
-                bracket: {
-                    name: 'Cilindro Scanalato Industriale',
-                    desc: 'Componente cilindrico con base flangiata e scanalature radiali pensato per calettamenti, boccole e verifiche di tolleranza.'
-                }
-            };
-
             const materialsDB = {
-                pla: { name: 'PLA+ (Acido Polilattico Rinforzato)', temp: '205°C – 220°C', strength: 'Media-Alta (60 MPa)', heat: 'Fino a 55°C', desc: 'Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.' },
-                petg: { name: 'PETG (Polietilene Tereftalato Glicole)', temp: '235°C – 250°C', strength: 'Alta + Flessibilità (53 MPa)', heat: 'Fino a 75°C', desc: 'Ottimo equilibrio tra robustezza meccanica, resistenza chimica e leggerezza. Perfetto per staffe, clip e parti funzionali.' },
-                asa: { name: 'ASA (Resistente UV e Intemperie)', temp: '250°C – 265°C', strength: 'Alta resistenza urti (55 MPa)', heat: 'Fino a 95°C', desc: 'Polimero tecnico resistente ai raggi UV e agli agenti atmosferici. Consigliato per componenti automotive ed esterni.' },
-                pacf: { name: 'PA12-CF (Nylon Caricato Fibra di Carbonio)', temp: '280°C – 300°C', strength: 'Estrema / Rigida (85 MPa)', heat: 'Fino a 130°C', desc: 'Poliammide rinforzata con fibra di carbonio: sostituisce leghe leggere in ingranaggi, supporti strutturali e dime industriali.' },
-                resin: { name: 'Resina Engineering Tough (MSLA)', temp: 'Polimerizzazione UV 405nm', strength: 'Alta definizione (65 MPa)', heat: 'Fino a 65°C', desc: 'Superficie liscia simile allo stampaggio a iniezione con layer da 0.05 mm. Ideale per micro-meccanica e dettagli complessi.' }
+                pla: { name: 'PLA+', temp: '205°C – 220°C', strength: 'Media-Alta (60 MPa)', heat: 'Fino a 55°C', desc: 'Ideale per prototipi estetici, modelli architettonici e verifiche dimensionali ad altissima precisione superficiale.' },
+                petg: { name: 'PETG', temp: '235°C – 250°C', strength: 'Alta + Flessibilità (53 MPa)', heat: 'Fino a 75°C', desc: 'Ottimo equilibrio tra robustezza meccanica, resistenza chimica e leggerezza. Perfetto per staffe, clip e parti funzionali.' },
+                asa: { name: 'ASA', temp: '250°C – 265°C', strength: 'Alta resistenza urti (55 MPa)', heat: 'Fino a 95°C', desc: 'Polimero tecnico resistente ai raggi UV e agli agenti atmosferici. Consigliato per componenti automotive ed esterni.' },
+                pacf: { name: 'Nylon PA12-CF', temp: '280°C – 300°C', strength: 'Estrema / Rigida (85 MPa)', heat: 'Fino a 130°C', desc: 'Poliammide rinforzata con fibra di carbonio: sostituisce leghe leggere in ingranaggi, supporti strutturali e dime industriali.' },
+                resin: { name: 'Resina Tough MSLA', temp: 'Polimerizzazione UV 405nm', strength: 'Alta definizione (65 MPa)', heat: 'Fino a 65°C', desc: 'Superficie liscia simile allo stampaggio a iniezione con layer da 0.05 mm. Ideale per micro-meccanica e dettagli complessi.' }
             };
 
-            function aggiornaDescrizioneModello() {
-                const mod = modelsDB[modelSelect.value] || modelsDB.gear;
-                descTargetTitle.textContent = mod.name;
-                descTargetBody.textContent = mod.desc;
-            }
-
-            function aggiornaDescrizioneMateriale() {
-                const mat = materialsDB[materialSelect.value] || materialsDB.pla;
-                descMatTitle.textContent = mat.name;
-                descMatBody.textContent = mat.desc;
+            materialSelect.addEventListener('change', (e) => {
+                const mat = materialsDB[e.target.value];
                 document.getElementById('mat-temp').textContent = mat.temp;
                 document.getElementById('mat-strength').textContent = mat.strength;
                 document.getElementById('mat-heat').textContent = mat.heat;
-            }
-
-            modelSelect.addEventListener('change', (e) => {
-                state.model = e.target.value;
-                aggiornaDescrizioneModello();
+                document.getElementById('mat-desc').textContent = mat.desc;
             });
-
-            materialSelect.addEventListener('change', () => {
-                aggiornaDescrizioneMateriale();
-            });
-
-            embeddedSliderBox.addEventListener('mousedown', (e) => e.stopPropagation());
-            embeddedSliderBox.addEventListener('mousemove', (e) => e.stopPropagation());
-            embeddedSliderBox.addEventListener('click', (e) => e.stopPropagation());
 
             let animFrameId = null, isOpen = false, time = 0;
             const speedSteps = [1, 2, 3, 0.5];
@@ -748,8 +275,7 @@
 
             const state = { model: 'gear', speed: 1, totalLayers: 42, baseRotY: 0.6, targetMouseX: 0, targetMouseY: 0, currentMouseX: 0, currentMouseY: 0 };
 
-            protoSpeedBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
+            protoSpeedBtn.addEventListener('click', () => {
                 speedIdx = (speedIdx + 1) % speedSteps.length;
                 state.speed = speedSteps[speedIdx];
                 protoSpeedBtn.textContent = `${state.speed}x`;
@@ -758,8 +284,6 @@
             window.apriBoxPrototipazione = function() {
                 modal.classList.add('active');
                 isOpen = true;
-                aggiornaDescrizioneModello();
-                aggiornaDescrizioneMateriale();
                 resizeCanvas();
                 if (!animFrameId) animate();
             };
@@ -784,6 +308,7 @@
                 msgField.focus();
             });
 
+            modelSelect.addEventListener('change', (e) => { state.model = e.target.value; });
             layersSlider.addEventListener('input', (e) => {
                 state.totalLayers = parseInt(e.target.value, 10);
                 const mm = (8.4 / state.totalLayers).toFixed(2);
@@ -814,27 +339,27 @@
                 const cosX = Math.cos(tiltX), sinX = Math.sin(tiltX);
                 const ry = y * cosX - rz * sinX, finalZ = y * sinX + rz * cosX;
                 const scale = 620 / (620 + finalZ + 320);
-                return { x: (width * 0.5) + rx * scale, y: (height * 0.62) - ry * scale };
+                return { x: (width * 0.5) + rx * scale, y: (height * 0.66) - ry * scale };
             }
 
             function getModelPoints(layerIdx, totalLayers) {
                 const progress = layerIdx / totalLayers;
-                const y = progress * 125;
-                const pts = [], segments = 60, baseRadius = 74;
+                const y = progress * 145;
+                const pts = [], segments = 60, baseRadius = 82;
                 for (let i = 0; i <= segments; i++) {
                     const angle = (i / segments) * Math.PI * 2;
                     let r = baseRadius;
-                    if (state.model === 'gear') r = baseRadius * 0.85 + (Math.sin(angle * 12) > 0 ? 10 : -4);
-                    else if (state.model === 'vase') r = baseRadius * (0.72 + 0.3 * Math.sin(progress * Math.PI * 1.35)) + Math.cos(angle * 8 + progress * Math.PI * 1.2) * 7;
+                    if (state.model === 'gear') r = baseRadius * 0.85 + (Math.sin(angle * 12) > 0 ? 11 : -4);
+                    else if (state.model === 'vase') r = baseRadius * (0.72 + 0.3 * Math.sin(progress * Math.PI * 1.35)) + Math.cos(angle * 8 + progress * Math.PI * 1.2) * 8;
                     else if (state.model === 'helix') r = baseRadius * (0.68 + 0.32 * Math.cos(angle * 3 - progress * Math.PI * 2.2));
-                    else if (state.model === 'bracket') r = baseRadius * 0.82 + (progress < 0.18 ? 16 : 0) + Math.cos(angle * 10) * 4;
+                    else if (state.model === 'bracket') r = baseRadius * 0.82 + (progress < 0.18 ? 18 : 0) + Math.cos(angle * 10) * 4;
                     pts.push({ x: Math.cos(angle) * r, y: y, z: Math.sin(angle) * r });
                 }
                 return pts;
             }
 
             function drawBuildPlate(rotY, tiltX, pal) {
-                const size = 126, step = 25;
+                const size = 140, step = 28;
                 ctx.lineWidth = 1;
                 for (let i = -size; i <= size; i += step) {
                     ctx.strokeStyle = i === 0 ? pal.axis : pal.gridMinor;
@@ -905,7 +430,7 @@
                         const proj = project(pts[i].x, pts[i].y, pts[i].z, rotY, tiltX);
                         i === 0 ? ctx.moveTo(proj.x, proj.y) : ctx.lineTo(proj.x, proj.y);
                         if (isCurrent && i === maxIdx) {
-                            const nozzleTop = project(pts[i].x, pts[i].y + 95, pts[i].z, rotY, tiltX);
+                            const nozzleTop = project(pts[i].x, pts[i].y + 110, pts[i].z, rotY, tiltX);
                             ctx.save();
                             ctx.strokeStyle = pal.nozzleLine;
                             ctx.lineWidth = 1.5;
@@ -933,6 +458,7 @@
 
             const modelSelect = document.getElementById('cadModelSelect');
             const cadSpeedBtn = document.getElementById('cadSpeedBtn');
+            const dimsToggle = document.getElementById('cadDimsToggle');
             const hudCoords = document.getElementById('cad-hud-coords');
             const hudScale = document.getElementById('cad-hud-scale');
             const richiediCadBtn = document.getElementById('richiediCadBtn');
@@ -975,41 +501,13 @@
                 msgField.focus();
             });
 
-            const cadDescTitle = document.getElementById('cad-desc-title');
-            const cadDescBody = document.getElementById('cad-desc-body');
-            const cadModelsDB = {
-                facade: {
-                    name: 'Prospetto Facciata Abitazione',
-                    desc: 'Restituzione grafica di prospetti esterni, aperture, falde e quote altimetriche in scala per pratiche edilizie, rilievi e studio dei materiali.'
-                },
-                floorplan: {
-                    name: 'Piantina Architettonica (Bilocale)',
-                    desc: 'Distribuzione interna quotata, murature, infissi e verso di apertura porte per ristrutturazioni, arredo e ottimizzazione degli spazi.'
-                },
-                section2d: {
-                    name: 'Sezione Strutturale con Scala',
-                    desc: 'Sezione verticale con quote di piano, solai e rampe di scala per verificare altezze libere, collegamenti verticali e dettagli costruttivi.'
-                },
-                gear2d: {
-                    name: 'Ingranaggio Meccanico Quotato',
-                    desc: 'Disegno tecnico in scala 1:1 con assi di simmetria, diametri nominali e fori di alleggerimento pronto per lavorazioni meccaniche o estrusione 3D.'
-                }
-            };
-
-            function aggiornaDescrizioneCad() {
-                const info = cadModelsDB[modelSelect.value] || cadModelsDB.facade;
-                if (cadDescTitle) cadDescTitle.textContent = info.name;
-                if (cadDescBody) cadDescBody.textContent = info.desc;
-            }
-
             modelSelect.addEventListener('change', (e) => {
                 state.model = e.target.value;
                 hudScale.textContent = state.model === 'gear2d' ? 'SCALA 1:1 • ORTHO ON' : 'SCALA 1:50 • ARCH-CAD';
-                aggiornaDescrizioneCad();
                 time = 0;
             });
-            aggiornaDescrizioneCad();
 
+            dimsToggle.addEventListener('change', (e) => { state.showDims = e.target.checked; });
 
             let width, height;
             function resizeCanvas() {
@@ -1029,7 +527,7 @@
                 for (let x = cx % major; x < width; x += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
                 for (let y = cy % major; y < height; y += major) { ctx.strokeStyle = pal.gridMajor; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
 
-                if (true) {
+                if (state.showDims) {
                     ctx.save();
                     ctx.setLineDash([8, 4, 2, 4]);
                     ctx.strokeStyle = pal.axis;
@@ -1095,7 +593,7 @@
             }
 
             function drawDimensions(cx, cy, alpha, pal) {
-                if (alpha <= 0) return;
+                if (!state.showDims || alpha <= 0) return;
                 ctx.save();
                 ctx.globalAlpha = alpha;
                 ctx.strokeStyle = pal.dimColor;

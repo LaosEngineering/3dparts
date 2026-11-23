@@ -167,103 +167,10 @@
             background: #f8f9fa;
             transform: translateY(-1px);
         }
-        .bacheca-actions {
+        .bacheca-elenco-item .btn-elimina {
             position: absolute;
             top: 15px;
             right: 15px;
-            display: flex;
-            gap: 8px;
-        }
-        .btn-modifica {
-            background: #0366d6;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .btn-modifica:hover {
-            background: #0256b9;
-        }
-        .edit-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.65);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            padding: 20px;
-        }
-        .edit-modal-overlay.attivo {
-            display: flex;
-        }
-        .edit-modal-box {
-            background: #ffffff;
-            color: #1f2937;
-            width: 100%;
-            max-width: 620px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-            box-sizing: border-box;
-        }
-        .edit-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 10px;
-        }
-        .edit-modal-close {
-            background: #e5e7eb;
-            color: #1f2937;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .edit-modal-close:hover {
-            background: #d1d5db;
-        }
-        .edit-existing-imgs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-        }
-        .edit-img-chip {
-            position: relative;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 4px;
-            background: #f8fafc;
-        }
-        .edit-img-chip img {
-            width: 96px;
-            height: 76px;
-            object-fit: cover;
-            border-radius: 4px;
-            display: block;
-        }
-        .edit-img-remove {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 22px;
-            height: 22px;
-            padding: 0;
-            border-radius: 50%;
-            background: #d73a49;
-            color: #fff;
-            font-size: 13px;
-            line-height: 22px;
-            text-align: center;
         }
         .bacheca-immagini-espansa {
             display: none;
@@ -516,7 +423,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, addDoc, query, orderBy, deleteDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, query, orderBy, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyChYUaNJ02DAZZd3FOIu0fBuv8KeooVW98",
@@ -852,10 +759,7 @@
                     : `<span style="color:#64748b;font-size:13px;">Nessuna immagine disponibile</span>`;
 
                 item.innerHTML = `
-                    <div class="bacheca-actions">
-                        <button type="button" class="btn-modifica">Modifica</button>
-                        <button type="button" class="btn-elimina">Elimina</button>
-                    </div>
+                    <button type="button" class="btn-elimina">Elimina</button>
                     <h4 style="margin:0 0 6px 0; color:#24292e;">${titolo}</h4>
                     <p style="margin:0; color:#4b5563; line-height:1.45;">${descrizione}</p>
                     <div class="bacheca-immagini-espansa">${imgsHtml}</div>
@@ -867,18 +771,7 @@
                     boxImg.classList.toggle("aperto");
                 });
 
-                item.querySelector(".btn-modifica").addEventListener("click", (ev) => {
-                    ev.stopPropagation();
-                    apriBoxModificaBacheca({
-                        ...p,
-                        titolo,
-                        descrizione,
-                        immaginiPulite: valide
-                    });
-                });
-
-                item.querySelector(".btn-elimina").addEventListener("click", async (ev) => {
-                    ev.stopPropagation();
+                item.querySelector(".btn-elimina").addEventListener("click", async () => {
                     if (confirm(`Eliminare "${titolo}"?`)) {
                         await deleteDoc(doc(db, "bacheca", p.id));
                         caricaBachecaAdmin();
@@ -892,103 +785,6 @@
         bachecaOrdineData.addEventListener("change", mostraBachecaAdmin);
         bachecaDataDal.addEventListener("change", mostraBachecaAdmin);
         bachecaDataAl.addEventListener("change", mostraBachecaAdmin);
-
-        
-        // ---------------- MODIFICA POST BACHECA ----------------
-        const boxModificaBacheca = document.getElementById("boxModificaBacheca");
-        const formModificaBacheca = document.getElementById("formModificaBacheca");
-        const editBachecaImmaginiAttuali = document.getElementById("editBachecaImmaginiAttuali");
-        const statoModificaBacheca = document.getElementById("statoModificaBacheca");
-        let immaginiInModifica = [];
-
-        function renderImmaginiInModifica() {
-            editBachecaImmaginiAttuali.innerHTML = "";
-            if (!immaginiInModifica.length) {
-                editBachecaImmaginiAttuali.innerHTML = "<span style='color:#64748b;font-size:13px;'>Nessuna immagine presente.</span>";
-                return;
-            }
-            immaginiInModifica.forEach((url, idx) => {
-                const chip = document.createElement("div");
-                chip.className = "edit-img-chip";
-                chip.innerHTML = `
-                    <img src="${url}" alt="Foto ${idx + 1}">
-                    <button type="button" class="edit-img-remove" title="Rimuovi foto">&times;</button>
-                `;
-                chip.querySelector(".edit-img-remove").addEventListener("click", () => {
-                    immaginiInModifica.splice(idx, 1);
-                    renderImmaginiInModifica();
-                });
-                editBachecaImmaginiAttuali.appendChild(chip);
-            });
-        }
-
-        function apriBoxModificaBacheca(post) {
-            document.getElementById("editBachecaId").value = post.id;
-            document.getElementById("editBachecaTitolo").value = post.titolo || "";
-            document.getElementById("editBachecaCategoria").value = post.categoria || post.Categoria || "";
-            document.getElementById("editBachecaMateriale").value = post.materiale || post.Materiale || "";
-            document.getElementById("editBachecaLayer").value = post.layer || post.Layer || "";
-            document.getElementById("editBachecaDescrizione").value = post.descrizione || "";
-            document.getElementById("editBachecaNuoveFoto").value = "";
-            statoModificaBacheca.textContent = "";
-            immaginiInModifica = [...(post.immaginiPulite || [])];
-            renderImmaginiInModifica();
-            boxModificaBacheca.classList.add("attivo");
-        }
-
-        function chiudiBoxModificaBacheca() {
-            boxModificaBacheca.classList.remove("attivo");
-            statoModificaBacheca.textContent = "";
-        }
-
-        document.getElementById("btnChiudiModifica").addEventListener("click", chiudiBoxModificaBacheca);
-        document.getElementById("btnAnnullaModifica").addEventListener("click", chiudiBoxModificaBacheca);
-        boxModificaBacheca.addEventListener("click", (ev) => {
-            if (ev.target === boxModificaBacheca) chiudiBoxModificaBacheca();
-        });
-
-        formModificaBacheca.addEventListener("submit", async (ev) => {
-            ev.preventDefault();
-            const postId = document.getElementById("editBachecaId").value;
-            const btnSalva = document.getElementById("btnSalvaModificaBacheca");
-            const nuoveFiles = Array.from(document.getElementById("editBachecaNuoveFoto").files || []);
-
-            if (!postId) return;
-
-            btnSalva.disabled = true;
-            statoModificaBacheca.textContent = "Salvataggio modifiche su Firebase in corso...";
-            statoModificaBacheca.style.color = "#0366d6";
-
-            try {
-                const aggiornate = [...immaginiInModifica];
-                for (const file of nuoveFiles) {
-                    const res = await salvaFotoSuFirebase(file, "bacheca");
-                    if (res && res.url) aggiornate.push(res.url);
-                }
-
-                await updateDoc(doc(db, "bacheca", postId), {
-                    titolo: document.getElementById("editBachecaTitolo").value.trim(),
-                    categoria: document.getElementById("editBachecaCategoria").value.trim() || "Realizzazione",
-                    materiale: document.getElementById("editBachecaMateriale").value.trim(),
-                    layer: document.getElementById("editBachecaLayer").value.trim(),
-                    descrizione: document.getElementById("editBachecaDescrizione").value.trim(),
-                    immagineUrl: aggiornate[0] || "",
-                    immagini: aggiornate
-                });
-
-                statoModificaBacheca.textContent = "Modifiche salvate!";
-                statoModificaBacheca.style.color = "#15803d";
-                await caricaBachecaAdmin();
-                setTimeout(chiudiBoxModificaBacheca, 350);
-            } catch (err) {
-                console.error("Errore modifica post bacheca:", err);
-                const msg = err && err.message ? err.message : String(err);
-                statoModificaBacheca.textContent = "Errore durante il salvataggio: " + msg;
-                statoModificaBacheca.style.color = "#d73a49";
-            } finally {
-                btnSalva.disabled = false;
-            }
-        });
 
         // ---------------- PUBBLICAZIONE VETRINA MACRO ----------------
         document.getElementById("formMacro").addEventListener("submit", async (e) => {
@@ -1082,52 +878,5 @@
             }
         }
     </script>
-
-    <!-- BOX MODIFICA POST BACHECA -->
-    <div id="boxModificaBacheca" class="edit-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titoloBoxModifica">
-        <div class="edit-modal-box">
-            <div class="edit-modal-header">
-                <h3 id="titoloBoxModifica" style="margin:0;">Modifica Post Bacheca</h3>
-                <button type="button" id="btnChiudiModifica" class="edit-modal-close" aria-label="Chiudi">&times;</button>
-            </div>
-            <form id="formModificaBacheca">
-                <input type="hidden" id="editBachecaId">
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Titolo del Pezzo *</label>
-                    <input type="text" id="editBachecaTitolo" required>
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Categoria / Badge</label>
-                    <input type="text" id="editBachecaCategoria">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Materiale</label>
-                    <input type="text" id="editBachecaMateriale">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Altezza Layer / Tolleranza</label>
-                    <input type="text" id="editBachecaLayer">
-                </div>
-                <div>
-                    <label style="font-size:13px; font-weight:bold;">Descrizione *</label>
-                    <textarea id="editBachecaDescrizione" rows="3" required></textarea>
-                </div>
-                <div style="margin-top:8px;">
-                    <label style="font-size:13px; font-weight:bold;">Immagini attuali del post (clicca &times; per rimuovere):</label>
-                    <div id="editBachecaImmaginiAttuali" class="edit-existing-imgs"></div>
-                </div>
-                <div style="margin-top:10px;">
-                    <label style="font-size:13px; font-weight:bold;">Aggiungi nuove foto dal PC (opzionale):</label>
-                    <input type="file" id="editBachecaNuoveFoto" accept="image/*" multiple>
-                </div>
-                <div style="display:flex; gap:10px; margin-top:14px;">
-                    <button type="submit" id="btnSalvaModificaBacheca">Salva Modifiche</button>
-                    <button type="button" id="btnAnnullaModifica" style="background:#6b7280;">Annulla</button>
-                </div>
-                <p id="statoModificaBacheca" class="status-msg"></p>
-            </form>
-        </div>
-    </div>
-
 </body>
 </html>
